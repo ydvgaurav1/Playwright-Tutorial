@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Playwright TypeScript Learning Framework
 
 A small, runnable UI test framework for the public [SauceDemo](https://www.saucedemo.com) login page. It contains two regression scenarios plus one isolated, intentionally failing reporting demonstration.
@@ -182,3 +183,7 @@ A **fixture** is test setup data or an object that Playwright creates and cleans
 It proves that a standard user can currently submit the public credentials and see the inventory URL/title, and that invalid credentials currently produce the expected error. It does not prove authorization, session persistence, lockout policy, accessibility, responsive behavior, all account types, all browsers, API correctness, performance, or production behavior.
 
 Start with [Lesson 1: framework architecture](learning-guide/01-framework-architecture.md), then follow the numbered guides.
+=======
+# Playwright-Tutorial
+Learning Guide
+>>>>>>> origin/main
