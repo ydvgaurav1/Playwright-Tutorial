@@ -243,7 +243,7 @@ local `file://` reports and future static hosting.
 ### Private GitHub package preparation
 
 `reporting/package.json` defines the scoped, unpublished
-`@ydvgaurav1/universal-qa-reporter@0.1.0` package for GitHub Packages.
+`@ydvgaurav1/universal-qa-reporter@0.1.1` package for GitHub Packages.
 `npm run build:reporter` compiles the
 existing reporting source into CommonJS JavaScript and declarations under the
 ignored `reporting/dist/` directory; it does not duplicate source. The package
@@ -253,7 +253,7 @@ reporter, dashboard renderer, and canonical JSON Schema, plus the
 installation and conversion do not install or import Playwright.
 
 ```bash
-npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.0
+npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.1
 
 # JUnit XML
 npx universal-qa-report results.xml --reports-root reports

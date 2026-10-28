@@ -1,6 +1,6 @@
 {
   "name": "@ydvgaurav1/universal-qa-reporter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framework-neutral QA report model, dashboard, Playwright reporter, and JUnit XML converter.",
   "license": "UNLICENSED",
   "repository": {
