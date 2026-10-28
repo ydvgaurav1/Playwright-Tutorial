@@ -30,21 +30,21 @@ The placeholder is safe to commit; the token value is not.
 
 ```bash
 export NODE_AUTH_TOKEN="YOUR_CLASSIC_PAT"
-npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.0
+npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.1
 ```
 
 ### Windows PowerShell
 
 ```powershell
 $env:NODE_AUTH_TOKEN = "YOUR_CLASSIC_PAT"
-npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.0
+npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.1
 ```
 
 ### Windows Command Prompt
 
 ```cmd
 set NODE_AUTH_TOKEN=YOUR_CLASSIC_PAT
-npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.0
+npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.1
 ```
 
 ## Playwright TypeScript
@@ -237,12 +237,12 @@ to public. The package has not yet been published.
 3. Tag the approved commit and push only the tag:
 
    ```bash
-   git tag -a universal-qa-reporter-v0.1.0 -m "Universal QA Reporter 0.1.0"
-   git push origin universal-qa-reporter-v0.1.0
+   git tag -a universal-qa-reporter-v0.1.1 -m "Universal QA Reporter 0.1.1"
+   git push origin universal-qa-reporter-v0.1.1
    ```
 
 4. In GitHub Actions, manually run **Publish Universal QA Reporter** against the
-   tagged commit with `version` set to `0.1.0` and `confirm_publish` enabled.
+   tagged commit with `version` set to `0.1.1` and `confirm_publish` enabled.
 5. Approve the protected environment deployment. The workflow then validates,
    packs, and publishes with restricted access.
 6. Confirm package visibility is **Private**, then grant only approved users

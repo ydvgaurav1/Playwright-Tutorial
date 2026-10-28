@@ -64,7 +64,7 @@ the reporter module name to validate the installed private package instead.
 With `NODE_AUTH_TOKEN` configured as documented in `reporting/README.md`:
 
 ```bash
-npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.0
+npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.1
 EXTERNAL_PLAYWRIGHT_REPORTER=@ydvgaurav1/universal-qa-reporter/playwright \
 EXTERNAL_PLAYWRIGHT_REPORTS_ROOT=/tmp/qa-playwright-reports \
   npx playwright test
