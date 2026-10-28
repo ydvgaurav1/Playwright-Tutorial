@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "rootDir": ".",
+    "outDir": "dist",
+    "declaration": true,
+    "noEmit": false,
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": [
+    "dashboard-template.ts",
+    "report-types.ts",
+    "playwright-reporter.ts",
+    "universal/**/*.ts",
+    "adapters/junit/*.ts",
+    "adapters/playwright/*.ts"
+  ],
+  "exclude": ["**/test/**", "dist/**"]
+}

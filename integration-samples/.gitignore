@@ -1,0 +1,5 @@
+**/node_modules/
+**/target/
+**/.reports/
+**/test-results/
+**/playwright-report/

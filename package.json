@@ -13,6 +13,13 @@
     "test:sanity": "playwright test --grep @sanity",
     "test:regression": "playwright test --grep @regression --grep-invert @demo",
     "test:reporting": "node --test reporting/report-model.test.cjs",
+    "test:universal": "node --test reporting/universal/test/schema.test.cjs reporting/universal/test/core.test.cjs reporting/universal/test/compatibility.test.cjs reporting/universal/test/evidence.test.cjs",
+    "test:adapter": "node --test reporting/adapters/playwright/test/adapter.test.cjs",
+    "test:junit": "node --test reporting/adapters/junit/test/parser.test.cjs reporting/adapters/junit/test/manifest.test.cjs reporting/adapters/junit/test/generate.test.cjs",
+    "test:dashboard-evidence": "node --test reporting/dashboard-evidence.test.cjs",
+    "test:package": "node --test reporting/package.test.cjs",
+    "build:reporter": "rm -rf reporting/dist && tsc -p reporting/tsconfig.package.json && cp reporting/universal/schema/qa-report.schema.json reporting/dist/universal/schema/qa-report.schema.json",
+    "report:junit": "node reporting/adapters/junit/cli.cjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "attachments": [
+    {
+      "classname": "dev.universalqa.samples.UserApiTest",
+      "testName": "returnsUserById",
+      "kind": "log",
+      "path": "target/evidence/user-response.log",
+      "name": "REST Assured response log"
+    },
+    {
+      "classname": "dev.universalqa.samples.UserApiTest",
+      "testName": "returnsUserById",
+      "kind": "file",
+      "path": "target/evidence/user-response.json",
+      "name": "Successful response body",
+      "mimeType": "application/json"
+    },
+    {
+      "classname": "dev.universalqa.samples.UserApiTest",
+      "testName": "reportsMismatchedRole",
+      "kind": "log",
+      "path": "target/evidence/failure-response.log",
+      "name": "Failing REST Assured response log"
+    },
+    {
+      "classname": "dev.universalqa.samples.UserApiTest",
+      "testName": "reportsMismatchedRole",
+      "kind": "file",
+      "path": "target/evidence/failure-response.json",
+      "name": "Failure response body",
+      "mimeType": "application/json"
+    }
+  ]
+}

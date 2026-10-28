@@ -313,8 +313,10 @@ class CustomDashboardReporter implements Reporter {
     return {
       kind,
       name: attachment.name,
+      filename,
       contentType: attachment.contentType,
       path: `../${folder}/${filename}`,
+      available: true,
     };
   }
 

@@ -1,5 +1,44 @@
 import type { DashboardDocument } from "./report-types";
 
+/**
+ * Optional presentation settings. Every default preserves the original
+ * Playwright dashboard so existing reports and tests keep their behavior.
+ */
+export type DashboardSettings = {
+  title?: string;
+  eyebrow?: string;
+  reportLabel?: string;
+  /** Set to null to hide the primary report link. */
+  reportHref?: string | null;
+  /** Set to null to hide the trace viewer link. */
+  traceViewerHref?: string | null;
+  traceViewerLabel?: string;
+  traceHelp?: string;
+  timezone?: string;
+  timezoneLabel?: string;
+  timezoneOffset?: string;
+  timestampsLabel?: string;
+  runtimeLabel?: string;
+  variantColumnLabel?: string;
+};
+
+const DEFAULT_DASHBOARD_SETTINGS = {
+  title: "Playwright Execution Dashboard",
+  eyebrow: "Playwright execution intelligence",
+  reportLabel: "Playwright report",
+  reportHref: "../playwright-report/index.html",
+  traceViewerHref: "https://trace.playwright.dev/",
+  traceViewerLabel: "Trace Viewer",
+  traceHelp:
+    "Open this ZIP with the Trace Viewer button or: npx playwright show-trace <trace.zip>",
+  timezone: "Asia/Kolkata",
+  timezoneLabel: "IST",
+  timezoneOffset: "UTC+05:30",
+  timestampsLabel: "IST timestamps",
+  runtimeLabel: "Node.js",
+  variantColumnLabel: "Project / Browser",
+} as const;
+
 function safeJson(value: unknown): string {
   return JSON.stringify(value)
     .replaceAll("<", "\\u003c")
@@ -7,15 +46,38 @@ function safeJson(value: unknown): string {
     .replaceAll("&", "\\u0026");
 }
 
-export function createDashboard(report: DashboardDocument): string {
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+export function createDashboard(
+  report: DashboardDocument,
+  settings: DashboardSettings = {},
+): string {
+  const resolved = { ...DEFAULT_DASHBOARD_SETTINGS, ...settings };
   const serializedReport = safeJson(report);
+  const actionLinks = [
+    resolved.reportHref
+      ? `        <a class="button" href="${escapeHtml(resolved.reportHref)}">${escapeHtml(resolved.reportLabel)} <span>↗</span></a>`
+      : "",
+    resolved.traceViewerHref
+      ? `        <a class="button" href="${escapeHtml(resolved.traceViewerHref)}" target="_blank" rel="noreferrer">${escapeHtml(resolved.traceViewerLabel)} <span>↗</span></a>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Playwright Execution Dashboard — ${report.run.id}</title>
+  <title>${escapeHtml(resolved.title)} — ${report.run.id}</title>
   <style>
     :root {
       color-scheme: dark;
@@ -157,6 +219,10 @@ export function createDashboard(report: DashboardDocument): string {
     .evidence { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
     .artifact { border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: rgba(8,17,31,.4); }
     .artifact img, .artifact video { width: 100%; max-height: 360px; object-fit: contain; border-radius: 7px; background: #030712; }
+    .artifact-meta { display: grid; gap: 3px; margin: 7px 0 10px; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+    .artifact-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 9px; }
+    .artifact-preview { max-height: 280px; overflow: auto; margin-top: 9px; padding: 10px; border: 1px solid var(--border); border-radius: 7px; background: #07101d; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .artifact-unavailable { margin: 9px 0 0; color: var(--failed); font-size: 12px; }
     .logs { border: 1px solid var(--border); border-radius: 9px; padding: 10px; background: #07101d; }
     .notice { color: var(--muted); font-size: 13px; }
     .empty { color: var(--muted); padding: 18px; text-align: center; }
@@ -180,7 +246,7 @@ export function createDashboard(report: DashboardDocument): string {
   <header class="hero">
     <div class="container hero-row">
       <div class="hero-copy">
-        <div class="eyebrow">Playwright execution intelligence</div>
+        <div class="eyebrow">${escapeHtml(resolved.eyebrow)}</div>
         <h1>Automation Dashboard</h1>
         <p class="subtitle" id="runSubtitle"></p>
         <div class="header-facts">
@@ -190,8 +256,7 @@ export function createDashboard(report: DashboardDocument): string {
         </div>
       </div>
       <nav class="actions" aria-label="Report actions">
-        <a class="button" href="../playwright-report/index.html">Playwright report <span>↗</span></a>
-        <a class="button" href="https://trace.playwright.dev/" target="_blank" rel="noreferrer">Trace Viewer <span>↗</span></a>
+${actionLinks}
       </nav>
     </div>
   </header>
@@ -213,7 +278,7 @@ export function createDashboard(report: DashboardDocument): string {
     </section>
 
     <details class="environment-details">
-      <summary><span>Execution details</span><small>Duration, operating system, runtime, URL and IST timestamps</small></summary>
+      <summary><span>Execution details</span><small>Duration, operating system, runtime, URL and ${escapeHtml(resolved.timestampsLabel)}</small></summary>
       <div class="metadata" id="metadata"></div>
     </details>
 
@@ -249,7 +314,7 @@ export function createDashboard(report: DashboardDocument): string {
     <section class="panel" aria-labelledby="specsTitle">
       <div class="panel-head"><h2 id="specsTitle">Spec files</h2><p>Failed specs are prioritized; project boundaries remain explicit.</p></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Spec file</th><th>Module</th><th>Project / Browser</th><th>Tests</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Flaky</th><th>Duration</th></tr></thead>
+        <thead><tr><th>Spec file</th><th>Module</th><th>${escapeHtml(resolved.variantColumnLabel)}</th><th>Tests</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Flaky</th><th>Duration</th></tr></thead>
         <tbody id="specRows"></tbody>
       </table></div>
       <p class="empty" id="noSpecs" hidden>No spec files match the current filters.</p>
@@ -258,7 +323,7 @@ export function createDashboard(report: DashboardDocument): string {
     <section class="panel" aria-labelledby="testsTitle">
       <div class="panel-head"><h2 id="testsTitle">Test execution</h2><p>Failed and flaky results are shown first.</p></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Test</th><th>Suite(s)</th><th>Module / Spec</th><th>Status</th><th>Started (IST)</th><th>Duration</th><th>Project / Browser</th><th>Retries</th></tr></thead>
+        <thead><tr><th>Test</th><th>Suite(s)</th><th>Module / Spec</th><th>Status</th><th>Started (${escapeHtml(resolved.timezoneLabel)})</th><th>Duration</th><th>${escapeHtml(resolved.variantColumnLabel)}</th><th>Retries</th></tr></thead>
         <tbody id="testRows"></tbody>
       </table></div>
       <p class="empty" id="noTests" hidden>No test results match the current filters. Clear or change filters to continue.</p>
@@ -281,7 +346,7 @@ export function createDashboard(report: DashboardDocument): string {
     <section class="panel" aria-labelledby="historyTitle">
       <div class="panel-head"><h2 id="historyTitle">Execution history</h2><p>Only completed reports found on disk are included.</p></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Run ID</th><th>Execution (IST)</th><th>Environment</th><th>Browser(s)</th><th>Pass rate</th><th>Passed</th><th>Failed</th><th>Flaky</th><th>Duration</th><th>Report</th></tr></thead>
+        <thead><tr><th>Run ID</th><th>Execution (${escapeHtml(resolved.timezoneLabel)})</th><th>Environment</th><th>Browser(s)</th><th>Pass rate</th><th>Passed</th><th>Failed</th><th>Flaky</th><th>Duration</th><th>Report</th></tr></thead>
         <tbody id="historyRows"></tbody>
       </table></div>
       <p class="empty" id="noHistory" hidden>No completed historical records are available for this scope.</p>
@@ -299,6 +364,13 @@ export function createDashboard(report: DashboardDocument): string {
     const statuses = ['passed', 'failed', 'skipped', 'flaky'];
     const statusColors = { passed: '#34d399', failed: '#fb7185', skipped: '#94a3b8', flaky: '#fbbf24' };
     const statusPriority = { failed: 0, flaky: 1, skipped: 2, passed: 3 };
+    const dashboardSettings = ${safeJson({
+      timezone: resolved.timezone,
+      timezoneLabel: resolved.timezoneLabel,
+      timezoneOffset: resolved.timezoneOffset,
+      traceHelp: resolved.traceHelp,
+      runtimeLabel: resolved.runtimeLabel,
+    })};
     const byId = (id) => document.getElementById(id);
 
     function formatDuration(milliseconds) {
@@ -307,12 +379,24 @@ export function createDashboard(report: DashboardDocument): string {
       return (milliseconds / 60000).toFixed(2) + ' min';
     }
 
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes) || bytes < 0) return 'Size not captured';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KiB';
+      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MiB';
+      return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GiB';
+    }
+
     function formatDate(iso) {
       const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric',
+        timeZone: dashboardSettings.timezone, day: '2-digit', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
       }).formatToParts(new Date(iso)).filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
-      return parts.day + '-' + parts.month + '-' + parts.year + ' ' + parts.hour + ':' + parts.minute + ':' + parts.second + ' ' + parts.dayPeriod.toUpperCase() + ' IST';
+      return parts.day + '-' + parts.month + '-' + parts.year + ' ' + parts.hour + ':' + parts.minute + ':' + parts.second + ' ' + parts.dayPeriod.toUpperCase() + ' ' + dashboardSettings.timezoneLabel;
+    }
+
+    function variantLabel(test) {
+      return test.browser ? test.project + ' / ' + test.browser : test.project;
     }
 
     function displayName(value) {
@@ -373,14 +457,23 @@ export function createDashboard(report: DashboardDocument): string {
         const spec = report.specs.find((item) => item.key === key);
         return spec ? spec.path + ' · ' + spec.project : key;
       });
-      appendOptions(byId('browserFilter'), [...new Set(report.tests.map((test) => test.browser))].sort(), 'All browsers');
+      const browsers = [...new Set(report.tests.map((test) => test.browser).filter(Boolean))].sort();
+      const browserFilter = byId('browserFilter');
+      if (browsers.length) {
+        appendOptions(browserFilter, browsers, 'All browsers');
+      } else {
+        browserFilter.replaceChildren();
+        const option = document.createElement('option');
+        option.value = 'all'; option.textContent = 'All browsers'; browserFilter.append(option);
+        browserFilter.hidden = true;
+      }
 
       const metadata = [
         ['Run ID', report.run.id], ['Run duration', formatDuration(report.summary.durationMs)],
         ['Browser(s)', report.metadata.browsers.join(', ') || 'Not captured'], ['Project(s)', report.metadata.projects.join(', ') || 'Not captured'],
-        ['Environment', report.metadata.environment], ['Timezone', 'IST (Asia/Kolkata, UTC+05:30)'],
-        ['Base URL', report.metadata.baseURL], ['Operating system', report.metadata.operatingSystem],
-        ['Node.js', report.metadata.nodeVersion], ['Started', formatDate(report.run.startTime)], ['Completed', formatDate(report.run.endTime)]
+        ['Environment', report.metadata.environment], ['Timezone', dashboardSettings.timezoneLabel + ' (' + dashboardSettings.timezone + ', ' + dashboardSettings.timezoneOffset + ')'],
+        ['Base URL', report.metadata.baseURL || 'Not captured'], ['Operating system', report.metadata.operatingSystem || 'Not captured'],
+        [dashboardSettings.runtimeLabel, report.metadata.nodeVersion || 'Not captured'], ['Started', formatDate(report.run.startTime)], ['Completed', formatDate(report.run.endTime)]
       ];
       metadata.forEach(([label, value]) => {
         const item = document.createElement('div'); item.className = 'meta-item';
@@ -496,7 +589,7 @@ export function createDashboard(report: DashboardDocument): string {
       rows.forEach(({ key, tests, summary }) => {
         const first = tests[0]; const row = document.createElement('tr'); row.className = 'clickable'; row.tabIndex = 0;
         const specCell = document.createElement('td'); specCell.append(textElement('strong', first.spec.name), textElement('span', first.spec.path, 'path'));
-        row.append(specCell, textElement('td', displayName(first.module)), textElement('td', first.project + ' / ' + first.browser),
+        row.append(specCell, textElement('td', displayName(first.module)), textElement('td', variantLabel(first)),
           textElement('td', summary.total), textElement('td', summary.passed), textElement('td', summary.failed),
           textElement('td', summary.skipped), textElement('td', summary.flaky), textElement('td', formatDuration(summary.durationMs)));
         const select = () => setFilter('spec', key, 'testsTitle'); row.addEventListener('click', select);
@@ -526,7 +619,7 @@ export function createDashboard(report: DashboardDocument): string {
         const insight = failureInsight(test); if (insight) statusCell.append(document.createElement('br'), textElement('span', insight.text, insight.className));
         row.append(testCell, textElement('td', test.suites.length ? test.suites.map(displayName).join(', ') : 'Unclassified'), locationCell, statusCell,
           textElement('td', formatDate(test.attempts[0]?.startTime || report.run.startTime)), textElement('td', formatDuration(test.durationMs)),
-          textElement('td', test.project + ' / ' + test.browser), textElement('td', test.retryAttempts + ' / ' + test.retriesConfigured));
+          textElement('td', variantLabel(test)), textElement('td', test.retryAttempts + ' / ' + test.retriesConfigured));
         row.addEventListener('click', () => openDetails(test));
         row.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') openDetails(test); }); body.append(row);
       });
@@ -602,16 +695,77 @@ export function createDashboard(report: DashboardDocument): string {
       return list;
     }
 
+    function safeArtifactPath(artifact) {
+      const value = artifact.path;
+      if (artifact.available === false || typeof value !== 'string' || !value.startsWith('../') || value.startsWith('../../')) return undefined;
+      if (value.includes('\\\\') || value.includes('%') || value.includes('?') || value.includes('#')) return undefined;
+      const segments = value.slice(3).split('/');
+      if (!segments.length || segments.some((segment) => !segment || segment === '.' || segment === '..')) return undefined;
+      return value;
+    }
+
+    function safeDownloadName(artifact) {
+      const value = String(artifact.filename || artifact.name || 'attachment').split(/[\\\\/]/).at(-1) || 'attachment';
+      return value.replace(/[\\u0000-\\u001f\\u007f]/g, '_').slice(0, 180) || 'attachment';
+    }
+
+    function appendArtifactUnavailable(card, message) {
+      if (card.querySelector('.artifact-unavailable')) return;
+      card.append(textElement('p', message || 'Attachment is unavailable.', 'artifact-unavailable'));
+    }
+
     function createEvidence(artifacts) {
       const section = document.createElement('section'); section.append(textElement('h3', 'Evidence'));
-      if (!artifacts.length) { section.append(textElement('p', 'No screenshot, video, or trace was captured for this attempt.', 'notice')); return section; }
+      if (!artifacts.length) { section.append(textElement('p', 'No evidence attachment was captured for this attempt.', 'notice')); return section; }
       const grid = document.createElement('div'); grid.className = 'evidence';
       artifacts.forEach((artifact) => {
-        const card = document.createElement('article'); card.className = 'artifact'; card.append(textElement('strong', displayName(artifact.kind) + ' · ' + artifact.name));
-        if (artifact.kind === 'screenshot') { const image = document.createElement('img'); image.src = artifact.path; image.alt = 'Captured screenshot for this test attempt'; card.append(image); }
-        if (artifact.kind === 'video') { const video = document.createElement('video'); video.src = artifact.path; video.controls = true; video.preload = 'metadata'; card.append(video); }
-        const link = document.createElement('a'); link.href = artifact.path; link.textContent = artifact.kind === 'trace' ? 'Download trace ZIP' : 'Open artifact'; link.target = '_blank'; link.rel = 'noreferrer'; card.append(document.createElement('br'), link);
-        if (artifact.kind === 'trace') card.append(textElement('p', 'Open this ZIP with the Trace Viewer button or: npx playwright show-trace <trace.zip>', 'notice')); grid.append(card);
+        const card = document.createElement('article'); card.className = 'artifact';
+        card.dataset.evidenceKind = artifact.kind;
+        card.dataset.evidenceFilename = artifact.filename || '';
+        card.append(textElement('strong', displayName(artifact.kind) + ' · ' + artifact.name));
+        const metadata = document.createElement('div'); metadata.className = 'artifact-meta';
+        metadata.append(
+          textElement('span', 'Filename: ' + (artifact.filename || 'Not captured')),
+          textElement('span', 'MIME type: ' + (artifact.contentType || 'Not captured')),
+          textElement('span', 'Size: ' + formatBytes(artifact.bytes))
+        );
+        card.append(metadata);
+
+        const artifactPath = safeArtifactPath(artifact);
+        if (!artifactPath) {
+          appendArtifactUnavailable(card, artifact.unavailableReason || 'Unsafe attachment path was blocked.');
+          grid.append(card);
+          return;
+        }
+
+        if (artifact.kind === 'screenshot') {
+          const image = document.createElement('img'); image.src = artifactPath; image.alt = 'Captured screenshot for this test attempt';
+          image.addEventListener('error', () => { image.hidden = true; appendArtifactUnavailable(card, 'Screenshot could not be loaded.'); }); card.append(image);
+        }
+        if (artifact.kind === 'video') {
+          const video = document.createElement('video'); video.src = artifactPath; video.controls = true; video.preload = 'metadata';
+          video.addEventListener('error', () => { video.hidden = true; appendArtifactUnavailable(card, 'Video could not be loaded.'); }); card.append(video);
+        }
+        if (artifact.preview) {
+          const preview = textElement('pre', artifact.preview.content, 'artifact-preview');
+          preview.setAttribute('aria-label', (artifact.preview.kind === 'json' ? 'JSON' : 'Text') + ' preview for ' + (artifact.filename || artifact.name));
+          card.append(preview);
+          if (artifact.preview.truncated) card.append(textElement('p', 'Preview truncated; download the attachment for complete content.', 'notice'));
+        } else if (artifact.kind !== 'screenshot' && artifact.kind !== 'video' && artifact.kind !== 'trace') {
+          card.append(textElement('p', 'Preview is not available for this file type.', 'notice'));
+        }
+
+        const actions = document.createElement('div'); actions.className = 'artifact-actions';
+        const link = document.createElement('a'); link.className = 'artifact-download'; link.href = artifactPath; link.rel = 'noreferrer';
+        if (artifact.kind === 'screenshot' || artifact.kind === 'video') {
+          link.textContent = 'Open artifact'; link.target = '_blank';
+        } else {
+          link.textContent = artifact.kind === 'trace' ? 'Download trace ZIP' : 'Download attachment';
+          link.download = safeDownloadName(artifact);
+        }
+        actions.append(link); card.append(actions);
+        if (artifact.kind === 'trace') card.append(textElement('p', dashboardSettings.traceHelp, 'notice'));
+        grid.append(card);
       });
       section.append(grid); return section;
     }
@@ -628,7 +782,7 @@ export function createDashboard(report: DashboardDocument): string {
       const insight = failureInsight(test);
       [
         ['Suite membership', test.suites.length ? test.suites.map(displayName).join(', ') : 'Unclassified'], ['Module', displayName(test.module)], ['Spec file', test.spec.path],
-        ['Project', test.project], ['Browser', test.browser], ['Stable test ID', test.id],
+        ['Project', test.project], ['Browser', test.browser || 'Not captured'], ['Stable test ID', test.id],
         ['Started', formatDate(test.attempts[0]?.startTime || report.run.startTime)], ['Duration', formatDuration(test.durationMs)],
         ['Retries used', String(test.retryAttempts)], ['History insight', insight ? insight.text : 'Not a current failure'], ['Source', test.file + ':' + test.line + ':' + test.column]
       ].forEach(([label, value]) => { const item = document.createElement('div'); item.className = 'meta-item'; item.append(textElement('span', label), textElement('strong', value)); info.append(item); });

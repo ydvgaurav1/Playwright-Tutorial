@@ -28,7 +28,7 @@ export default defineConfig({
       },
     ],
     [
-      "./reporting/custom-reporter.ts",
+      "./reporting/playwright-reporter.ts",
       {
         reportsRoot: reportingSettings.reportsRoot,
         stagingDirectory: reportingSettings.stagingDirectory,
