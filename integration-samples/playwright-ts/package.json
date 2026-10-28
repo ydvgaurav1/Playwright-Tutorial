@@ -1,0 +1,11 @@
+{
+  "name": "external-playwright-ts-sample",
+  "private": true,
+  "description": "Standalone Playwright project used to validate the universal reporter integration.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}

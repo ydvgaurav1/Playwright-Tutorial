@@ -1,0 +1,75 @@
+name: Publish Universal QA Reporter
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version from reporting/package.json (for example, 0.1.0)
+        required: true
+        type: string
+      confirm_publish:
+        description: Publish the validated package to GitHub Packages
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    if: ${{ inputs.confirm_publish == true }}
+    runs-on: ubuntu-latest
+    environment: github-packages
+
+    steps:
+      - name: Check out the selected release commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js and GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: "@ydvgaurav1"
+
+      - name: Verify version and release tag
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          node - <<'NODE'
+          const manifest = require("./reporting/package.json");
+          const requested = process.env.RELEASE_VERSION;
+          if (manifest.version !== requested) {
+            throw new Error(`Requested ${requested}, but reporting/package.json contains ${manifest.version}.`);
+          }
+          NODE
+          git tag --points-at HEAD | grep -Fx "universal-qa-reporter-v${RELEASE_VERSION}"
+
+      - name: Install repository dependencies
+        run: npm ci
+
+      - name: Validate types and reporting behavior
+        run: |
+          npm run typecheck
+          npm run test:reporting
+          npm run test:universal
+          npm run test:adapter
+          npm run test:junit
+          npm run test:dashboard-evidence
+          npm run test:package
+
+      - name: Build package
+        run: npm run build:reporter
+
+      - name: Inspect publish contents
+        run: npm pack ./reporting --dry-run --json
+
+      - name: Publish private package
+        run: npm publish ./reporting --registry=https://npm.pkg.github.com --access=restricted
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

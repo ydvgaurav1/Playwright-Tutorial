@@ -1,0 +1,60 @@
+{
+  "name": "@ydvgaurav1/universal-qa-reporter",
+  "version": "0.1.0",
+  "description": "Framework-neutral QA report model, dashboard, Playwright reporter, and JUnit XML converter.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ydvgaurav1/Playwright-Tutorial.git",
+    "directory": "reporting"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "type": "commonjs",
+  "main": "./dist/universal/index.js",
+  "types": "./dist/universal/index.d.ts",
+  "bin": {
+    "universal-qa-report": "./dist/adapters/junit/bin.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.package.json && cp universal/schema/qa-report.schema.json dist/universal/schema/qa-report.schema.json"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/universal/index.d.ts",
+      "require": "./dist/universal/index.js"
+    },
+    "./junit": {
+      "types": "./dist/adapters/junit/generate.d.ts",
+      "require": "./dist/adapters/junit/generate.js"
+    },
+    "./playwright": {
+      "types": "./dist/playwright-reporter.d.ts",
+      "require": "./dist/playwright-reporter.js"
+    },
+    "./dashboard": {
+      "types": "./dist/dashboard-template.d.ts",
+      "require": "./dist/dashboard-template.js"
+    },
+    "./schema": "./dist/universal/schema/qa-report.schema.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "adapters/junit/README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.64.0"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": true
+    }
+  }
+}

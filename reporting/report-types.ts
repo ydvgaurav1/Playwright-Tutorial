@@ -20,10 +20,27 @@ export type StepRecord = {
 };
 
 export type ArtifactRecord = {
-  kind: "screenshot" | "video" | "trace";
+  kind:
+    | "screenshot"
+    | "video"
+    | "trace"
+    | "log"
+    | "file"
+    | "native-report";
   name: string;
+  filename: string;
   contentType: string;
   path: string;
+  bytes?: number;
+  sha256?: string;
+  format?: string;
+  available?: boolean;
+  unavailableReason?: string;
+  preview?: {
+    kind: "json" | "text";
+    content: string;
+    truncated: boolean;
+  };
 };
 
 export type LogRecord = {
