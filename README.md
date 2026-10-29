@@ -2,8 +2,8 @@
 
 `universal-qa-reporter@0.1.2` is distributed from the public
 `reporter-dist` branch of `ydvgaurav1/Playwright-Tutorial`. Consumers install
-directly from GitHub without npm publication, GitHub Packages authentication,
-personal access tokens, or manual `.tgz` files.
+directly from GitHub over HTTPS without npm publication, GitHub Packages
+authentication, personal access tokens, SSH keys, or manual `.tgz` files.
 
 The branch contains only the installable package: compiled CommonJS JavaScript,
 TypeScript declarations, package metadata, the MIT license, the canonical JSON
@@ -19,16 +19,22 @@ tutorial source, tests, build scripts, or generated reports.
 ## Install from GitHub
 
 ```bash
-npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#reporter-dist
+npm install --save-dev https://github.com/ydvgaurav1/Playwright-Tutorial.git#reporter-dist
 ```
 
-No registry mapping, `npm login`, token, or GitHub Packages access is required.
-The repository is public, and npm installs the package from the branch.
+No registry mapping, `npm login`, token, SSH key, or GitHub Packages access is
+required. The repository is public, and npm clones the branch anonymously over
+HTTPS.
+
+Use the HTTPS URL rather than the `github:` shorthand. npm resolves
+`github:ydvgaurav1/Playwright-Tutorial#reporter-dist` to
+`git+ssh://git@github.com/...`, which requires an SSH key on every consumer
+machine.
 
 To pin an exact reviewed distribution commit instead of the moving branch:
 
 ```bash
-npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#<commit-sha>
+npm install --save-dev https://github.com/ydvgaurav1/Playwright-Tutorial.git#<commit-sha>
 ```
 
 Commit the resulting `package-lock.json` so every teammate and CI job installs
@@ -176,7 +182,7 @@ release. Reinstall to move to the latest distribution revision, or pin a commit
 for reproducible installs:
 
 ```bash
-npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#reporter-dist
+npm install --save-dev https://github.com/ydvgaurav1/Playwright-Tutorial.git#reporter-dist
 ```
 
 ## Distribution scope
