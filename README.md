@@ -19,22 +19,23 @@ tutorial source, tests, build scripts, or generated reports.
 ## Install from GitHub
 
 ```bash
-npm install --save-dev https://github.com/ydvgaurav1/Playwright-Tutorial.git#reporter-dist
+npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#reporter-dist
 ```
 
 No registry mapping, `npm login`, token, SSH key, or GitHub Packages access is
-required. The repository is public, and npm clones the branch anonymously over
-HTTPS.
+required. The repository is public, and npm downloads the branch tarball from
+GitHub over HTTPS.
 
-Use the HTTPS URL rather than the `github:` shorthand. npm resolves
-`github:ydvgaurav1/Playwright-Tutorial#reporter-dist` to
-`git+ssh://git@github.com/...`, which requires an SSH key on every consumer
-machine.
+The equivalent explicit URL is:
+
+```bash
+npm install --save-dev https://github.com/ydvgaurav1/Playwright-Tutorial.git#reporter-dist
+```
 
 To pin an exact reviewed distribution commit instead of the moving branch:
 
 ```bash
-npm install --save-dev https://github.com/ydvgaurav1/Playwright-Tutorial.git#<commit-sha>
+npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#<commit-sha>
 ```
 
 Commit the resulting `package-lock.json` so every teammate and CI job installs
@@ -182,7 +183,7 @@ release. Reinstall to move to the latest distribution revision, or pin a commit
 for reproducible installs:
 
 ```bash
-npm install --save-dev https://github.com/ydvgaurav1/Playwright-Tutorial.git#reporter-dist
+npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#reporter-dist
 ```
 
 ## Distribution scope
