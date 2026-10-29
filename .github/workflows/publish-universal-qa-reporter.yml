@@ -1,27 +1,27 @@
-name: Publish Universal QA Reporter
+name: Publish Universal QA Reporter to npm
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version from reporting/package.json (for example, 0.1.1)
+        description: Version from reporting/package.json (for example, 0.1.2)
         required: true
         type: string
       confirm_publish:
-        description: Publish the validated package to GitHub Packages
+        description: Publish the validated public package to npm
         required: true
         default: false
         type: boolean
 
 permissions:
   contents: read
-  packages: write
+  id-token: write
 
 jobs:
   publish:
     if: ${{ inputs.confirm_publish == true }}
     runs-on: ubuntu-latest
-    environment: github-packages
+    environment: npm-production
 
     steps:
       - name: Check out the selected release commit
@@ -29,26 +29,47 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Node.js and GitHub Packages
+      - name: Set up Node.js and npm
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
-          registry-url: https://npm.pkg.github.com
-          scope: "@ydvgaurav1"
+          registry-url: https://registry.npmjs.org
 
-      - name: Verify version and release tag
+      - name: Ensure npm supports Trusted Publishing
+        run: |
+          npm install --global npm@^11.5.1
+          npm --version
+
+      - name: Verify public package metadata and release tag
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
           node - <<'NODE'
+          const fs = require("node:fs");
           const manifest = require("./reporting/package.json");
           const requested = process.env.RELEASE_VERSION;
+          if (manifest.name !== "universal-qa-reporter") {
+            throw new Error(`Expected public package universal-qa-reporter, but found ${manifest.name}.`);
+          }
           if (manifest.version !== requested) {
             throw new Error(`Requested ${requested}, but reporting/package.json contains ${manifest.version}.`);
           }
+          if (manifest.publishConfig?.registry !== "https://registry.npmjs.org" || manifest.publishConfig?.access !== "public") {
+            throw new Error("Public npm registry metadata is not configured.");
+          }
+          if (manifest.license !== "MIT") {
+            throw new Error("Public publication requires the approved MIT license.");
+          }
+          if (!fs.existsSync("./reporting/LICENSE")) {
+            throw new Error("Public publication requires reporting/LICENSE.");
+          }
+          const license = fs.readFileSync("./reporting/LICENSE", "utf8");
+          if (!license.includes("MIT License") || !license.includes("Copyright (c) 2026 ydvgaurav1")) {
+            throw new Error("reporting/LICENSE does not contain the approved MIT license text.");
+          }
           NODE
-          git tag --points-at HEAD | grep -Fx "universal-qa-reporter-v${RELEASE_VERSION}"
+          git tag --points-at HEAD | grep -Fx "universal-qa-reporter-npm-v${RELEASE_VERSION}"
 
       - name: Install repository dependencies
         run: npm ci
@@ -72,7 +93,5 @@ jobs:
       - name: Inspect publish contents
         run: npm pack ./reporting --dry-run --json
 
-      - name: Publish private package
-        run: npm publish ./reporting --registry=https://npm.pkg.github.com --access=restricted
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish public package with provenance
+        run: npm publish ./reporting --registry=https://registry.npmjs.org --access=public --provenance

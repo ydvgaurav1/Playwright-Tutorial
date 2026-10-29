@@ -6,7 +6,7 @@ does not run a test framework.
 
 ## Usage
 
-After installing `@ydvgaurav1/universal-qa-reporter` from GitHub Packages:
+After installing `universal-qa-reporter` from the public npm registry:
 
 ```bash
 # One file

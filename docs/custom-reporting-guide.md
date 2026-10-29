@@ -240,10 +240,10 @@ media or download URL. Preview content is assigned with `textContent`, never
 `innerHTML`, and requires no runtime filesystem request; this supports both
 local `file://` reports and future static hosting.
 
-### Private GitHub package preparation
+### Public npm package preparation
 
-`reporting/package.json` defines the scoped, unpublished
-`@ydvgaurav1/universal-qa-reporter@0.1.1` package for GitHub Packages.
+`reporting/package.json` defines the unscoped, unpublished
+`universal-qa-reporter@0.1.2` package for the official npm registry.
 `npm run build:reporter` compiles the
 existing reporting source into CommonJS JavaScript and declarations under the
 ignored `reporting/dist/` directory; it does not duplicate source. The package
@@ -253,22 +253,23 @@ reporter, dashboard renderer, and canonical JSON Schema, plus the
 installation and conversion do not install or import Playwright.
 
 ```bash
-npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.1
+npm install --save-dev --save-exact universal-qa-reporter@0.1.2
 
 # JUnit XML
 npx universal-qa-report results.xml --reports-root reports
 
 # Playwright config reporter entry
-@ydvgaurav1/universal-qa-reporter/playwright
+universal-qa-reporter/playwright
 ```
 
-The checked-in `.npmrc` maps only the `@ydvgaurav1` scope to GitHub Packages and
-contains no credential. Consumers supply a read-only classic PAT through
-`NODE_AUTH_TOKEN`. Publication is manual-only through
-`.github/workflows/publish-universal-qa-reporter.yml`, uses the workflow's
-short-lived `GITHUB_TOKEN`, and requires a matching versioned Git tag. GitHub
-package visibility must remain **Private** with access granted only to approved
-users. No registry publication or cloud service has been performed.
+The unscoped public package uses the default npm registry and requires no
+consumer credential or registry mapping. Publication is manual-only through
+`.github/workflows/publish-universal-qa-reporter.yml`, requires a matching
+versioned Git tag and protected environment approval, and is intended to use npm
+Trusted Publishing. The package is licensed under MIT and the matching
+`reporting/LICENSE` file is included in the tarball; the workflow fails closed
+unless an approved SPDX license and license file are present. No public npm
+publication or cloud service has been performed.
 
 ## Verification record — 2026-10-28 (Phase 6)
 
