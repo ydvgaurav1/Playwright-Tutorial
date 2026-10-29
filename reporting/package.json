@@ -1,16 +1,16 @@
 {
-  "name": "@ydvgaurav1/universal-qa-reporter",
-  "version": "0.1.1",
+  "name": "universal-qa-reporter",
+  "version": "0.1.2",
   "description": "Framework-neutral QA report model, dashboard, Playwright reporter, and JUnit XML converter.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ydvgaurav1/Playwright-Tutorial.git",
     "directory": "reporting"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   },
   "type": "commonjs",
   "main": "./dist/universal/index.js",
@@ -44,7 +44,8 @@
   "files": [
     "dist/",
     "README.md",
-    "adapters/junit/README.md"
+    "adapters/junit/README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=20"

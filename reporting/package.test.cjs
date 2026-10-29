@@ -6,7 +6,8 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const repositoryRoot = path.resolve(__dirname, "..");
-const packageName = "@ydvgaurav1/universal-qa-reporter";
+const packageName = "universal-qa-reporter";
+const packageVersion = "0.1.2";
 
 function run(command, args, options = {}) {
   return spawnSync(command, args, {
@@ -25,7 +26,7 @@ function assertSucceeded(result, label) {
   );
 }
 
-test("builds, packs, installs, and executes the GitHub-scoped reporter without Playwright", (t) => {
+test("builds, packs, installs, and executes the public reporter without Playwright", (t) => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "qa-reporter-package-"));
   t.after(() => fs.rmSync(workspace, { recursive: true, force: true }));
   const packDirectory = path.join(workspace, "pack");
@@ -47,6 +48,7 @@ test("builds, packs, installs, and executes the GitHub-scoped reporter without P
   const packResult = JSON.parse(packed.stdout);
   assert.equal(packResult.length, 1);
   assert.equal(packResult[0].name, packageName);
+  assert.equal(packResult[0].version, packageVersion);
   const tarball = path.join(packDirectory, packResult[0].filename);
   assert.equal(fs.existsSync(tarball), true);
 
@@ -55,6 +57,7 @@ test("builds, packs, installs, and executes the GitHub-scoped reporter without P
   const files = archive.stdout.trim().split("\n");
   for (const required of [
     "package/package.json",
+    "package/LICENSE",
     "package/README.md",
     "package/dist/universal/index.js",
     "package/dist/universal/index.d.ts",
@@ -92,20 +95,21 @@ test("builds, packs, installs, and executes the GitHub-scoped reporter without P
       path.join(
         consumer,
         "node_modules",
-        "@ydvgaurav1",
-        "universal-qa-reporter",
+        ...packageName.split("/"),
         "package.json",
       ),
       "utf8",
     ),
   );
   assert.equal(installedPackage.name, packageName);
+  assert.equal(installedPackage.version, packageVersion);
+  assert.equal(installedPackage.license, "MIT");
   assert.equal(installedPackage.private, undefined);
   assert.equal(
     installedPackage.publishConfig.registry,
-    "https://npm.pkg.github.com",
+    "https://registry.npmjs.org",
   );
-  assert.equal(installedPackage.publishConfig.access, "restricted");
+  assert.equal(installedPackage.publishConfig.access, "public");
   assert.deepEqual(installedPackage.repository, {
     type: "git",
     url: "git+https://github.com/ydvgaurav1/Playwright-Tutorial.git",
@@ -120,9 +124,15 @@ test("builds, packs, installs, and executes the GitHub-scoped reporter without P
         `const core = require("${packageName}");`,
         `const junit = require("${packageName}/junit");`,
         `const reporter = require("${packageName}/playwright");`,
+        `const dashboard = require("${packageName}/dashboard");`,
+        `const schema = require("${packageName}/schema");`,
+        `const manifest = require("${packageName}/package.json");`,
         'if (typeof core.assertValidRunDocument !== "function") process.exit(2);',
         'if (typeof junit.generateJunitReport !== "function") process.exit(3);',
         'if (typeof reporter !== "function" && typeof reporter.default !== "function") process.exit(4);',
+        'if (typeof dashboard.createDashboard !== "function") process.exit(5);',
+        'if (schema.$id !== "https://qa-report.local/schema/v1/qa-report.schema.json") process.exit(6);',
+        `if (manifest.name !== "${packageName}" || manifest.version !== "${packageVersion}") process.exit(7);`,
       ].join(""),
     ],
     { cwd: consumer },
@@ -148,6 +158,9 @@ test("builds, packs, installs, and executes the GitHub-scoped reporter without P
   );
   const reportsRoot = path.join(consumer, "reports");
   const bin = path.join(consumer, "node_modules", ".bin", "universal-qa-report");
+  const help = run("node", [bin, "--help"], { cwd: consumer });
+  assertSucceeded(help, "installed JUnit CLI help");
+  assert.match(help.stdout, /JUnit XML to universal report/);
   const conversion = run(
     "node",
     [

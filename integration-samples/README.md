@@ -50,22 +50,19 @@ the newest completed run.
 ### Configuration for an external Playwright project
 
 1. Install Playwright and its browser in the external project.
-2. Authenticate to GitHub Packages and install
-   `@ydvgaurav1/universal-qa-reporter`.
-3. Register `@ydvgaurav1/universal-qa-reporter/playwright` as a reporter and pass
+2. Install `universal-qa-reporter` from the public npm registry.
+3. Register `universal-qa-reporter/playwright` as a reporter and pass
    `reportsRoot`, `stagingDirectory`, `playwrightReportDirectory`, `timezone`,
    `environment`, and `baseURL`.
 4. Keep the native `html` reporter if the dashboard should link to it.
 5. Run the project normally. No production test changes are required.
 
 The repository sample defaults to a source path for contributor validation. Set
-the reporter module name to validate the installed private package instead.
-
-With `NODE_AUTH_TOKEN` configured as documented in `reporting/README.md`:
+the reporter module name to validate the installed public package instead.
 
 ```bash
-npm install --save-exact @ydvgaurav1/universal-qa-reporter@0.1.1
-EXTERNAL_PLAYWRIGHT_REPORTER=@ydvgaurav1/universal-qa-reporter/playwright \
+npm install --save-dev --save-exact universal-qa-reporter@0.1.2
+EXTERNAL_PLAYWRIGHT_REPORTER=universal-qa-reporter/playwright \
 EXTERNAL_PLAYWRIGHT_REPORTS_ROOT=/tmp/qa-playwright-reports \
   npx playwright test
 ```
@@ -78,8 +75,8 @@ Prerequisites:
 - Maven 3.9.x (not installed globally in the validation environment; Apache
   Maven 3.9.9 was downloaded to a temporary directory)
 - Node.js 22+
-- For external use, authenticated access to the private
-  `@ydvgaurav1/universal-qa-reporter` package
+- For external use, install `universal-qa-reporter` from the public npm registry
+  after version `0.1.2` is published
 
 Run the tests:
 
