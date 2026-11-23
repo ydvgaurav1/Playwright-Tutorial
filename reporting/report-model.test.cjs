@@ -242,3 +242,56 @@ test("renders a result-independent dashboard title and the complete filter set",
     "generated dashboard client script must parse",
   );
 });
+
+test("separates run navigation from resettable test filters", () => {
+  const { createDashboard } = require(path.join(
+    projectRoot,
+    "reporting/dashboard-template.ts",
+  ));
+  const html = createDashboard({
+    schemaVersion: 2,
+    run: {
+      id: "run-1",
+      status: "passed",
+      startTime: "2026-10-26T10:00:00.000Z",
+      endTime: "2026-10-26T10:00:01.000Z",
+      timezone: "Asia/Kolkata",
+    },
+    metadata: {
+      environment: "demo",
+      baseURL: "https://example.test",
+      browsers: ["chromium"],
+      projects: ["chromium"],
+      operatingSystem: "test-os",
+      nodeVersion: "v22",
+      ci: false,
+    },
+    summary: {
+      total: 0,
+      passed: 0,
+      failed: 0,
+      skipped: 0,
+      flaky: 0,
+      passPercentage: 0,
+      durationMs: 0,
+    },
+    suites: [],
+    modules: [],
+    specs: [],
+    tests: [],
+    globalErrors: [],
+    history: [],
+  });
+
+  assert.match(html, /class="run-context"/);
+  assert.match(html, /<span class="run-context-label">Viewed execution<\/span>/);
+  assert.match(html, /id="latestRun"[^>]*>View latest run<\/a>/);
+  assert.match(html, />Reset test filters<\/button>/);
+  assert.doesNotMatch(html, />Clear filters<\/button>/);
+
+  const runContextIndex = html.indexOf('class="run-context"');
+  const filtersIndex = html.indexOf('class="filters"');
+  const runPickerIndex = html.indexOf('class="run-picker"');
+  assert.ok(runContextIndex < filtersIndex);
+  assert.ok(runPickerIndex > runContextIndex && runPickerIndex < filtersIndex);
+});
