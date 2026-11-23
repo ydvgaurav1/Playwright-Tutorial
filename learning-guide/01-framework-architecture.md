@@ -30,11 +30,13 @@ flowchart TD
     APP --> ASSERT[Web-first assertions]
     ASSERT --> RESULT[TestCase and TestResult]
     RESULT --> NATIVE[Playwright HTML reporter]
-    RESULT --> CUSTOM[reporting/custom-reporter.ts]
-    CUSTOM --> MODEL[reporting/report-model.ts]
-    CUSTOM --> JSON[results.json]
-    CUSTOM --> DASH[Custom dashboard]
-    CUSTOM --> EVIDENCE[Screenshot / video / trace]
+    RESULT --> ADAPTER[reporting/adapters/playwright/adapter.ts]
+    ADAPTER --> UNIVERSAL[reporting/universal core]
+    UNIVERSAL --> RUN[run.json]
+    UNIVERSAL --> PROJECT[Legacy projection]
+    PROJECT --> JSON[results.json]
+    PROJECT --> DASH[Custom dashboard]
+    ADAPTER --> EVIDENCE[Screenshot / video / trace]
 ```
 
 The arrows show **runtime data flow**, not inheritance. For example, the spec does not inherit from the page object. The fixture constructs a `LoginPage` and injects it into the test callback.
@@ -43,7 +45,7 @@ The arrows show **runtime data flow**, not inheritance. For example, the spec do
 
 | Area | Actual file | Primary responsibility | Executes when |
 |---|---|---|---|
-| Commands | `package.json:6-16` | Maps names such as `test:regression` to CLI commands. | npm starts a script. |
+| Commands | `package.json:6-19` | Maps names such as `test:regression` to CLI commands. | npm starts a script. |
 | Type checking | `tsconfig.json:2-20` | Enables strict checks and selects TypeScript source. | `npm run typecheck` or editor analysis. |
 | Runner policy | `playwright.config.ts:12-63` | Discovery, workers, retries, timeouts, browser, artifacts, and reporters. | Before test collection. |
 | Scenarios | `tests/login.spec.ts:4-31` | Describes valid and invalid login behavior and pass/fail assertions. | Declarations register during collection; callbacks run per test. |
@@ -54,9 +56,16 @@ The arrows show **runtime data flow**, not inheritance. For example, the spec do
 | Environment utility | `utils/env.ts:1-9` | Selects an environment value/fallback and rejects blanks. | Called while test data is imported. |
 | Report context | `reporting/run-context.ts:3-17` | Defines report roots, staging, environment, and IST timezone. | Imported by runner configuration. |
 | Report schema | `reporting/report-types.ts:1-146` | Types schema-v2 results, attempts, evidence, and history. | Compile time only; the resulting objects exist at runtime. |
-| Report model | `reporting/report-model.ts:11-133` | Pure tag classification and aggregate calculations. | Custom reporter finalization and unit tests. |
-| Report collector | `reporting/custom-reporter.ts:49-487` | Converts Playwright results into durable JSON/evidence/history. | Reporter lifecycle, mainly `onEnd`. |
-| Report presentation | `reporting/dashboard-template.ts:10-678` | Generates the self-contained HTML dashboard. | Called by the custom reporter at run completion. |
+| Report model | `reporting/report-model.ts:11-133` | Pure tag classification and aggregate calculations. | Legacy reference implementation and unit tests. |
+| Report collector (reference) | `reporting/custom-reporter.ts:49-487` | Pre-migration Playwright collector kept as a readable reference; no longer registered. | Not executed by the configured runner. |
+| Playwright adapter | `reporting/adapters/playwright/adapter.ts` | Playwright lifecycle, canonical collection, evidence copying, validation, and failure isolation. | Reporter lifecycle, mainly `onEnd`. |
+| Legacy projection | `reporting/adapters/playwright/legacy-projection.ts` | Projects canonical `RunDocument` into schema-v2 `results.json`. | After canonical collection. |
+| Run writer | `reporting/adapters/playwright/report-writer.ts` | Atomic run-folder reservation, native-report copy, history, dashboard, and latest redirect. | Adapter finalization. |
+| Reporter entry point | `reporting/playwright-reporter.ts` | Thin module registered in `playwright.config.ts`. | Loaded before test collection. |
+| Report presentation | `reporting/dashboard-template.ts:10-678` | Generates the self-contained HTML dashboard from the legacy projection plus history. | Called by the run writer at run completion. |
+| Universal schema | `reporting/universal/schema/types.ts`, `validate.ts`, `qa-report.schema.json` | Defines canonical `1.0.0` contracts, runtime validation, and published JSON Schema. | Adapter finalization and tests. |
+| Universal core | `reporting/universal/core/classify.ts`, `metrics.ts`, `normalize.ts` | Framework-independent classification, summaries, status/timestamp/duration normalization, and redaction. | Adapter and compatibility projection. |
+| Legacy compatibility | `reporting/universal/compat/legacy-playwright.ts`, `compare.ts` | Projects existing `results.json` documents into canonical form and compares old/new models. | Read-only historical verification. |
 
 ## Separation of concerns
 
@@ -69,7 +78,9 @@ Each file has one main reason to change:
 | Use another standard credential in CI | Environment/secret configuration | Data should not require changing test mechanics. |
 | Add a typed page object fixture | `fixtures/index.ts` | Fixture composition belongs to the custom runner. |
 | Change trace retention | `playwright.config.ts` | Artifact policy is runner configuration. |
-| Add a report hierarchy rule | `reporting/report-model.ts` | Classification and aggregation are pure report-model concerns. |
+| Add a report hierarchy rule | `reporting/universal/core/classify.ts` | Classification is shared by every adapter and the compatibility reader. |
+| Change canonical report fields | `reporting/universal/schema/types.ts` | The canonical contract is framework-independent. |
+| Change how Playwright data is collected | `reporting/adapters/playwright/adapter.ts` | Runner-specific lifecycle stays in the adapter. |
 | Change dashboard layout | `reporting/dashboard-template.ts` | Presentation must not change test correctness. |
 
 This is **separation of concerns**: a selector change should not require editing report code, and a visual dashboard change should not alter test behavior.
@@ -89,7 +100,7 @@ This is **separation of concerns**: a selector change should not require editing
 11. `LoginPage` fills username, fills password, and clicks Login in order.
 12. The spec verifies both `/inventory.html` and the `Products` title at `tests/login.spec.ts:17-20`.
 13. Playwright records the result and tears down test-scoped fixtures/context.
-14. The list, native HTML, and custom reporters finish processing the invocation.
+14. The list, native HTML, and Playwright adapter reporters finish processing the invocation. The adapter writes canonical `run.json`, projects it to `results.json`, and renders the dashboard from that projection.
 
 ## Source versus generated output
 
@@ -98,10 +109,11 @@ Authored source                         Generated output
 -----------------------------------     --------------------------------
 tests/, pages/, fixtures/               test-results/
 test-data/, utils/                      playwright-report/
-reporting/*.ts                          reports/<run-id>/results.json
-playwright.config.ts                    reports/<run-id>/dashboard/
-package.json, tsconfig.json             reports/<run-id>/screenshots/
-learning-guide/*.md                     reports/<run-id>/videos|traces/
+reporting/*.ts                          reports/<run-id>/run.json
+playwright.config.ts                    reports/<run-id>/results.json
+package.json, tsconfig.json             reports/<run-id>/dashboard/
+learning-guide/*.md                     reports/<run-id>/screenshots/
+                                        reports/<run-id>/videos|traces/
 ```
 
 Do not fix a dashboard bug by editing `reports/<run-id>/dashboard/index.html`; that changes only one historical artifact. Fix `reporting/dashboard-template.ts`, verify it, and generate a new run.
@@ -114,7 +126,8 @@ Do not fix a dashboard bug by editing `reports/<run-id>/dashboard/index.html`; t
 - Two passing login scenarios.
 - One intentionally failing demo assertion.
 - Per-test `LoginPage` fixture.
-- List, native HTML, and custom reporters.
+- List, native HTML, and universal-core Playwright adapter reporters.
+- Canonical `run.json` plus the preserved schema-v2 `results.json` and dashboard.
 - Failure-only screenshot, video, and trace retention.
 - Immutable local report history.
 
@@ -135,7 +148,7 @@ Playwright may support those capabilities generally, but this repository does no
 3. **Putting browser actions at module scope** — they execute outside test isolation/lifecycle.
 4. **Duplicating one test for Sanity and Regression** — tags already provide many-to-many suite membership.
 5. **Editing generated reports** — generated files are evidence, not source.
-6. **Treating the custom reporter as the result authority** — Playwright decides outcomes; the reporter observes and serializes them.
+6. **Treating the reporting adapter as the result authority** — Playwright decides outcomes; the adapter observes and serializes them.
 
 ## Practical exercise
 
@@ -160,7 +173,7 @@ Suggested answers: `pages/LoginPage.ts`, `playwright.config.ts`, `reporting/repo
 
 ### 3. Why can a dashboard display failure evidence without being responsible for the failure?
 
-**Answer:** Playwright creates a failed `TestResult` when an action/assertion rejects. The custom reporter receives that already-decided outcome and serializes its errors, steps, and attachments.
+**Answer:** Playwright creates a failed `TestResult` when an action/assertion rejects. The reporting adapter receives that already-decided outcome and serializes its errors, steps, and attachments.
 
 ## Related lessons
 

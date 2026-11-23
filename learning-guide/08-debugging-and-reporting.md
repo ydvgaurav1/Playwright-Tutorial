@@ -6,7 +6,7 @@ After this lesson, you should be able to:
 
 1. Select the right debugging tool for a failure symptom.
 2. Explain how screenshots, videos, traces, JSON, native HTML, and the custom dashboard are produced.
-3. Follow Playwright Reporter API lifecycle data into schema-v2 output.
+3. Follow Playwright Reporter API lifecycle data into canonical `run.json` and legacy `results.json`.
 4. Debug the intentionally failing login test from evidence instead of guessing.
 
 ## Debugging principle: classify before editing
@@ -59,6 +59,7 @@ Use the smallest command that reproduces the problem, then expand scope after un
 | Screenshot | What did the final page visually show? | One instant; no timing/network history. |
 | Video | What visual sequence occurred? | Limited DOM/locator/network internals. |
 | Trace | What actions, DOM snapshots, network, console, and timings occurred? | Larger artifact; requires Trace Viewer. |
+| `run.json` | What did the adapter capture in the framework-independent canonical shape? | Newer and richer than `results.json`; the dashboard does not read it directly. |
 | `results.json` | What were the machine-readable tests, attempts, statuses, steps, and artifact paths? | Not optimized for visual reading. |
 | Native HTML report | What did Playwright capture using its official reporter? | Different hierarchy from custom dashboard. |
 | Custom dashboard | How do suite/module/spec/test/history views relate? | It organizes evidence; it does not diagnose root cause automatically. |
@@ -91,13 +92,17 @@ Configured at `playwright.config.ts:21-42`:
 flowchart TD
     RESULT[Playwright execution events] --> LIST[List reporter]
     RESULT --> HTML[Native HTML reporter]
-    RESULT --> CUSTOM[CustomDashboardReporter]
+    RESULT --> ADAPTER[PlaywrightReportingAdapter]
     LIST --> TERMINAL[Terminal output]
     HTML --> STAGING[reports/.current/playwright-report]
-    CUSTOM --> JSON[results.json]
-    CUSTOM --> DASH[dashboard/index.html]
-    CUSTOM --> EVIDENCE[Stable evidence folders]
-    CUSTOM --> LATEST[reports/latest redirect]
+    ADAPTER --> UNIVERSAL[Universal normalize / classify / validate]
+    UNIVERSAL --> RUN[run.json]
+    UNIVERSAL --> PROJECT[Legacy projection]
+    PROJECT --> JSON[results.json]
+    PROJECT --> WRITER[Run writer]
+    WRITER --> DASH[dashboard/index.html]
+    ADAPTER --> EVIDENCE[Stable evidence folders]
+    WRITER --> LATEST[reports/latest redirect]
 ```
 
 ### List reporter
@@ -106,71 +111,102 @@ Prints concise progress and results to the terminal.
 
 ### Native HTML reporter
 
-Writes Playwright's official HTML report into staging. The custom reporter later copies it into the immutable run directory.
+Writes Playwright's official HTML report into staging. The adapter later copies it into the immutable run directory.
 
-### Custom reporter
+### Playwright adapter
 
-Collects the repository-specific hierarchy, attempts, nested steps, errors, logs, attachments, history, and metadata.
+Collects the repository-specific hierarchy, attempts, nested steps, errors, logs, attachments, history, and metadata. It builds the canonical document first, validates it, then projects it into the legacy schema-v2 document that the existing dashboard and history reader consume.
+
+`reporting/custom-reporter.ts` is intentionally preserved as the pre-migration reference, but it is not registered in `playwright.config.ts`. Only the adapter writes the run folder, so two active reporters cannot race on the same output.
 
 ## Reporting source map
 
 | File | Responsibility |
 |---|---|
 | `reporting/run-context.ts` | Absolute report paths, staging directories, environment, and `Asia/Kolkata`. |
-| `reporting/report-types.ts` | Schema-v2 TypeScript contracts. |
-| `reporting/report-model.ts` | Pure suite/module classification and summary aggregation. |
-| `reporting/custom-reporter.ts` | Reporter lifecycle, serialization, redaction, evidence copying, history, and filesystem output. |
-| `reporting/dashboard-template.ts` | Self-contained HTML/CSS/client JavaScript. |
+| `reporting/report-types.ts` | Schema-v2 TypeScript contracts used by the dashboard and history reader. |
+| `reporting/report-model.ts` | Pure suite/module classification and summary aggregation retained for the legacy reference and tests. |
+| `reporting/custom-reporter.ts` | Pre-migration reference implementation; not registered in the live configuration. |
+| `reporting/playwright-reporter.ts` | Thin entry point registered in `playwright.config.ts`. |
+| `reporting/adapters/playwright/adapter.ts` | Reporter lifecycle, canonical collection, redaction, evidence copying, validation, and failure isolation. |
+| `reporting/adapters/playwright/legacy-projection.ts` | Canonical `RunDocument` → schema-v2 `ReportDocument`. |
+| `reporting/adapters/playwright/report-writer.ts` | Atomic run-folder reservation, native-report copy, history, dashboard, and latest redirect. |
+| `reporting/dashboard-template.ts` | Self-contained HTML/CSS/client JavaScript, unchanged by Phase 3. |
 | `reporting/report-model.test.cjs` | Unit tests for classification, counting, project isolation, HTML controls, and embedded-client syntax. |
+| `reporting/universal/schema/` | Canonical schema `1.0.0`, TypeScript contracts, JSON Schema, safe-path rules, and runtime validation. |
+| `reporting/universal/core/` | Framework-independent classification, metrics, and normalization. |
+| `reporting/universal/compat/` | Read-only projection of existing `results.json` files and an old/new equivalence report. |
+| `reporting/universal/test/` | Schema, calculation, and historical compatibility tests (`npm run test:universal`). |
+| `reporting/adapters/playwright/test/` | Adapter, compatibility, flaky-retry, and failure-isolation tests (`npm run test:adapter`). |
+
+### Universal reporting core status
+
+Phase 3 wires the universal core into the live Playwright path. The adapter collects Playwright objects, the shared core classifies and normalizes them, and the writer emits both documents.
+
+- `run.json` is the canonical schema `1.0.0` document and is validated before any durable write.
+- `results.json` remains schema version 2 and remains the dashboard/history input; it is now a projection of the canonical document.
+- Canonical tests keep their existing Playwright IDs and execution identity.
+- Pass rate remains `passed / total`, including skipped tests in the denominator.
+- The overall summary separates wall-clock run duration from the sum of test durations; suite, module, and spec summaries sum member test durations.
+- Existing evidence paths remain dashboard-relative in `results.json` (`../screenshots/...`) and run-root-relative in `run.json` (`screenshots/...`).
+- Historical reports are read-only. The compatibility test loads every available `results.json` and reports zero differences against the legacy model.
+- Adapter failures are caught in `onEnd`, logged clearly, and never change Playwright's test exit status or overwrite an older run folder.
+
+Run `npm run test:universal` for schema, metric, normalization, and historical-equivalence coverage, and `npm run test:adapter` for the Playwright lifecycle, projection, evidence, retry, and failure-isolation coverage.
 
 ## Reporter lifecycle
 
 ```mermaid
 sequenceDiagram
     participant PW as Playwright
-    participant R as CustomDashboardReporter
-    participant M as Report model
+    participant A as PlaywrightReportingAdapter
+    participant U as Universal core
+    participant W as Run writer
     participant FS as Filesystem
     participant T as Dashboard template
 
-    PW->>R: constructor(options)
-    PW->>R: onBegin(config, rootSuite)
+    PW->>A: constructor(options)
+    PW->>A: onBegin(config, rootSuite)
     loop During attempts
-        PW->>R: onStdOut / onStdErr
-        PW->>R: onError (global errors if any)
+        PW->>A: onStdOut / onStdErr
+        PW->>A: onError (global errors if any)
     end
-    PW->>R: onEnd(fullResult)
-    R->>FS: Reserve unique run directory
-    R->>R: Serialize TestCase/TestResult objects
-    R->>FS: Copy retained attachments
-    R->>M: createSummary/suite/module/spec records
-    M-->>R: Aggregates
-    R->>FS: Write results.json
-    R->>FS: Copy native HTML report
-    R->>FS: Load prior completed results
-    R->>T: createDashboard(report + history)
-    T-->>R: HTML string
-    R->>FS: Write dashboard and latest redirect
-    R->>FS: Remove staging
+    PW->>A: onEnd(fullResult)
+    A->>W: Reserve unique run directory
+    A->>W: Copy native HTML report
+    A->>FS: Copy retained attachments
+    A->>U: Normalize/classify/serialize TestCase/TestResult objects
+    U-->>A: Canonical RunDocument
+    A->>U: assertValidRunDocument
+    A->>W: Write run.json + legacy projection
+    W->>FS: Write run.json and results.json atomically
+    W->>FS: Load prior completed results
+    W->>T: createDashboard(projection + history)
+    T-->>W: HTML string
+    W->>FS: Write dashboard and latest redirect
+    W->>FS: Remove staging
 ```
 
 ### Key lifecycle methods
 
-| Method | Lines | Purpose |
-|---|---:|---|
-| `onBegin` | 63-66 | Saves full config and root suite for final serialization. |
-| `onError` | 68-70 | Captures errors not owned by a normal test result. |
-| `onStdOut` / `onStdErr` | 72-78 | Associates redacted logs with a specific `TestResult`. |
-| `onEnd` | 80-142 | Creates the immutable report and finalizes every output. |
-| `serializeTest` | 144-188 | Builds one project-aware `TestRecord`. |
-| `serializeAttempt` | 190-215 | Preserves each attempt's errors, steps, logs, and artifacts. |
-| `serializeStep` | 232-243 | Recursively maps nested Playwright steps. |
-| `serializeError` | 245-261 | Cleans ANSI, redacts, and extracts expected/actual. |
-| `copyEvidence` | 293-347 | Copies screenshot/video/trace to stable folders. |
-| `loadHistory` | 357-407 | Reads valid completed prior `results.json` files. |
-| `updateLatestRedirect` | 409-425 | Points a stable path to the newest completed dashboard. |
+| Method | Purpose |
+|---|---|
+| `onBegin` | Saves full config and root suite for final serialization. |
+| `onError` | Captures errors not owned by a normal test result. |
+| `onStdOut` / `onStdErr` | Associates redacted logs with a specific `TestResult`. |
+| `onEnd` | Creates the immutable report and finalizes every output; failures are logged, not rethrown. |
+| `serializeTest` | Builds one project-aware canonical `TestRecord`. |
+| `serializeAttempt` | Preserves each attempt's errors, steps, logs, evidence, retry, and worker identity. |
+| `serializeStep` | Recursively maps nested Playwright steps. |
+| `serializeError` | Cleans ANSI, redacts, and extracts expected/actual. |
+| `copyEvidence` | Copies screenshot/video/trace to stable folders and records run-root-relative paths. |
+| `toLegacyReport` | Projects canonical tests and derived aggregates into schema-v2 `results.json`. |
+| `loadHistory` | Reads valid completed prior `results.json` files. |
+| `updateLatestRedirect` | Points a stable path to the newest completed dashboard. |
 
-## Schema-v2 hierarchy and identity
+## Canonical and schema-v2 hierarchy and identity
+
+The same hierarchy exists in both documents. `run.json` stores the canonical test records directly; `results.json` stores the projection plus the derived `suites`, `modules`, and `specs` views that the dashboard consumes.
 
 ```mermaid
 flowchart TD
@@ -222,10 +258,12 @@ flowchart LR
     KIND -->|image/name screenshot| SHOT[screenshots/]
     KIND -->|video MIME/name| VIDEO[videos/]
     KIND -->|trace name/zip| TRACE[traces/]
-    SHOT --> RECORD[ArtifactRecord relative path]
+    SHOT --> RECORD[EvidenceRecord run-root-relative path]
     VIDEO --> RECORD
     TRACE --> RECORD
-    RECORD --> JSON[results.json]
+    RECORD --> RUN[run.json]
+    RECORD --> PROJECT[Legacy projection]
+    PROJECT --> JSON[results.json]
     JSON --> DASH[Dashboard evidence cards]
 ```
 
@@ -235,7 +273,7 @@ flowchart LR
 2. creates a safe filename from test title and stable test ID;
 3. includes retry index and attachment index;
 4. copies file or attachment body;
-5. returns a relative path that the dashboard can open.
+5. returns a run-root-relative path in `run.json`; the legacy projection prefixes `../` so the dashboard can open the same file.
 
 Passing tests normally have no retained screenshot/video/trace under the configured failure-only policy. “No evidence captured” can therefore be correct, not a reporter bug.
 
@@ -247,7 +285,8 @@ reports/
 ├── DD-MMM-YYYY_hh-mm-AM-or-PM/
 │   ├── dashboard/index.html          # custom self-contained dashboard
 │   ├── playwright-report/            # copied native report
-│   ├── results.json                  # schema-v2 machine-readable result
+│   ├── run.json                      # canonical schema 1.0.0 result
+│   ├── results.json                  # schema-v2 projection for dashboard/history
 │   ├── screenshots/
 │   ├── videos/
 │   └── traces/
@@ -285,7 +324,7 @@ await expect(
 ).toContainText("Account locked after invalid login");
 ```
 
-Observed schema-v2 run `26-Oct-2026_11-06-PM` recorded:
+Observed Phase 3 run `28-Oct-2026_02-47-PM` recorded:
 
 | Evidence | Value |
 |---|---|
@@ -331,7 +370,10 @@ The locator is not broken: it repeatedly resolves. The click is not broken: the 
 # Pure classification, aggregation, HTML contracts, embedded script syntax
 npm run test:reporting
 
-# Static TypeScript checks for reporter/model/template source
+# Canonical schema, universal metrics/normalization, historical equivalence
+npm run test:universal
+
+# Static TypeScript checks for reporter/model/template/universal source
 npm run typecheck
 
 # Two production-style tests; verifies reporter output without demo failure
