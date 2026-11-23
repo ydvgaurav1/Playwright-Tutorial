@@ -473,7 +473,7 @@ ${actionLinks}
           <option value="all">All statuses</option><option value="passed">Passed</option><option value="failed">Failed</option><option value="skipped">Skipped</option><option value="flaky">Flaky</option>
         </select>
         <select id="browserFilter" aria-label="Filter by browser"></select>
-        <button class="clear" id="clearFilters" type="button">Reset test filters</button>
+        <button class="clear" id="clearFilters" type="button">Reset all</button>
       </div>
       <p class="scope-note" id="filterScope"></p>
     </section>
@@ -894,6 +894,7 @@ ${actionLinks}
     let pickerRuns = [];
     let pickerMonth = { year: 1970, monthIndex: 0 };
     let pickerSelectedKey = '';
+    let latestPickerRun;
 
     /** Executions are grouped by the report timezone, not the browser's. */
     function runDateKey(iso) {
@@ -934,6 +935,7 @@ ${actionLinks}
       pickerSelectedKey = runDateKey(report.run.startTime);
       byId('runFilterLabel').textContent = parts.day + ' ' + parts.month + ' ' + parts.year + ' · ' + parts.hour + ':' + parts.minute + ' ' + parts.dayPeriod.toUpperCase();
       const latest = pickerRuns[0];
+      latestPickerRun = latest;
       const latestLink = byId('latestRun');
       if (latest && !latest.current && latest.dashboardPath) {
         latestLink.href = latest.dashboardPath;
@@ -1441,7 +1443,13 @@ ${actionLinks}
       byId(id).addEventListener(id === 'search' ? 'input' : 'change', renderAll);
     });
     byId('clearFilters').addEventListener('click', () => {
-      byId('search').value = ''; ['suiteFilter', 'moduleFilter', 'specFilter', 'statusFilter', 'browserFilter'].forEach((id) => { byId(id).value = 'all'; }); renderAll();
+      byId('search').value = '';
+      ['suiteFilter', 'moduleFilter', 'specFilter', 'statusFilter', 'browserFilter'].forEach((id) => { byId(id).value = 'all'; });
+      if (latestPickerRun && !latestPickerRun.current && latestPickerRun.dashboardPath) {
+        window.location.href = latestPickerRun.dashboardPath;
+        return;
+      }
+      renderAll();
     });
     document.querySelectorAll('[data-summary-filter]').forEach((button) => button.addEventListener('click', () => setFilter('status', button.dataset.summaryFilter, 'testsTitle')));
     let chartFilterIndex = 0;

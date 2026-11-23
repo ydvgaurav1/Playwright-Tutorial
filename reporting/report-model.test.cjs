@@ -286,7 +286,7 @@ test("separates run navigation from resettable test filters", () => {
   assert.match(html, /class="run-context"/);
   assert.match(html, /<span class="run-context-label">Viewed execution<\/span>/);
   assert.match(html, /id="latestRun"[^>]*>View latest run<\/a>/);
-  assert.match(html, />Reset test filters<\/button>/);
+  assert.match(html, />Reset all<\/button>/);
   assert.doesNotMatch(html, />Clear filters<\/button>/);
 
   const runContextIndex = html.indexOf('class="run-context"');

@@ -262,3 +262,64 @@ test("renders, previews, and downloads universal evidence without regressing med
   assert.deepEqual(consoleErrors, []);
   assert.deepEqual(pageErrors, []);
 });
+
+test("resetting filters returns a historical dashboard to the latest run", async (t) => {
+  const reportsRoot = fs.mkdtempSync(path.join(os.tmpdir(), "qa-dashboard-reset-"));
+  t.after(() => fs.rmSync(reportsRoot, { recursive: true, force: true }));
+
+  const oldReport = dashboardDocument([]);
+  oldReport.run = {
+    ...oldReport.run,
+    id: "old-run",
+    startTime: "2026-10-28T10:00:00.000Z",
+    endTime: "2026-10-28T10:00:00.010Z",
+  };
+  const latestReport = dashboardDocument([]);
+  latestReport.run = {
+    ...latestReport.run,
+    id: "latest-run",
+    startTime: "2026-10-29T10:00:00.000Z",
+    endTime: "2026-10-29T10:00:00.010Z",
+  };
+  const history = [oldReport, latestReport].map((report) => ({
+    runId: report.run.id,
+    startTime: report.run.startTime,
+    endTime: report.run.endTime,
+    environment: report.metadata.environment,
+    browsers: report.metadata.browsers,
+    projects: report.metadata.projects,
+    suites: report.suites,
+    summary: report.summary,
+    failedTestIds: [],
+    dashboardPath: `../../${report.run.id}/dashboard/index.html`,
+  }));
+
+  for (const report of [oldReport, latestReport]) {
+    const dashboardDirectory = path.join(
+      reportsRoot,
+      report.run.id,
+      "dashboard",
+    );
+    fs.mkdirSync(dashboardDirectory, { recursive: true });
+    fs.writeFileSync(
+      path.join(dashboardDirectory, "index.html"),
+      createDashboard({ ...report, history }),
+    );
+  }
+
+  const browser = await chromium.launch({ headless: true });
+  t.after(() => browser.close());
+  const hosted = await serve(reportsRoot);
+  t.after(() => new Promise((resolve) => hosted.server.close(resolve)));
+  const page = await browser.newPage();
+
+  await page.goto(`${hosted.origin}/old-run/dashboard/index.html`);
+  await page.locator("#search").fill("failure");
+  await page.locator("#clearFilters").click();
+
+  assert.equal(
+    page.url(),
+    `${hosted.origin}/latest-run/dashboard/index.html`,
+  );
+  assert.equal(await page.locator("#search").inputValue(), "");
+});
