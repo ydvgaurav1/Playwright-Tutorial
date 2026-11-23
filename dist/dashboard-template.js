@@ -186,7 +186,16 @@ function createDashboard(report, settings = {}) {
     .meta-item span { display: block; margin-bottom: 3px; color: var(--muted); font-size: 10px; font-weight: 400; text-transform: uppercase; letter-spacing: .05em; }
     .meta-item strong { display: block; font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
 
-    .filters { display: grid; grid-template-columns: minmax(215px, 1.45fr) minmax(215px, 1.45fr) repeat(5, minmax(110px, 1fr)) auto; gap: 8px; }
+    .run-context { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 12px; padding: 11px 12px; border: 1px solid rgba(103, 232, 249, .22); border-radius: 10px; background: linear-gradient(90deg, rgba(103, 232, 249, .07), rgba(11, 23, 40, .55) 48%); }
+    .run-context-copy { min-width: 190px; }
+    .run-context-label { display: block; color: var(--text); font-size: 12px; font-weight: 800; }
+    .run-context-copy small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .run-context-controls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; width: min(100%, 470px); }
+    .run-latest { flex: none; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--accent); background: rgba(8, 17, 31, .42); font-size: 11.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .run-latest:hover, .run-latest:focus-visible { border-color: var(--accent); outline: none; }
+    .run-latest[hidden] { display: none; }
+    .filters { display: grid; grid-template-columns: minmax(220px, 1.6fr) repeat(5, minmax(125px, 1fr)) auto; gap: 8px; }
+    .filters > * { min-width: 0; }
     .search-field { min-width: 180px; }
     input, select { width: 100%; min-height: 38px; border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; color: var(--text); background: #0b1728; }
     input::placeholder { color: var(--muted); }
@@ -195,7 +204,7 @@ function createDashboard(report, settings = {}) {
     .clear:hover, .clear:focus-visible { border-color: var(--accent); outline: none; }
     .scope-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
 
-    .run-picker { position: relative; width: 100%; min-width: 0; }
+    .run-picker { position: relative; flex: 1; width: 100%; min-width: 220px; }
     .run-trigger { display: flex; align-items: center; gap: 7px; width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px; background: #0b1728; color: var(--text); text-align: left; }
     .run-trigger:hover, .run-trigger:focus-visible, .run-trigger[aria-expanded="true"] { border-color: var(--accent); outline: none; }
     .run-trigger-kicker { color: var(--muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
@@ -315,7 +324,7 @@ function createDashboard(report, settings = {}) {
     .empty { margin: 0; padding: 18px; color: var(--muted); font-size: 12px; text-align: center; }
 
     @media (max-width: 1250px) {
-      .filters { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .filters .search-field { grid-column: span 2; }
     }
     @media (max-width: 1000px) {
@@ -332,6 +341,10 @@ function createDashboard(report, settings = {}) {
       .cards { grid-template-columns: repeat(2, 1fr); }
       .filters, .metadata, .details-grid, .comparison { grid-template-columns: 1fr; }
       .filters .search-field { grid-column: auto; }
+      .run-context { align-items: stretch; flex-direction: column; gap: 9px; }
+      .run-context-controls { align-items: stretch; flex-direction: column; width: 100%; }
+      .run-picker { min-width: 0; }
+      .run-latest { text-align: center; }
       .chart-wrap { justify-content: center; }
       .health-head, .panel-head { align-items: flex-start; flex-direction: column; gap: 3px; }
       .environment-details > summary small { display: none; }
@@ -391,26 +404,34 @@ ${actionLinks}
     </details>
 
     <section class="panel" aria-labelledby="filtersTitle">
-      <div class="panel-head"><h2 id="filtersTitle">Filter results</h2><p>Filters stack. Changing the run opens that run's report.</p></div>
+      <div class="panel-head"><h2 id="filtersTitle">Refine results</h2><p>Combine filters to narrow the tests shown in this execution.</p></div>
+      <div class="run-context">
+        <div class="run-context-copy">
+          <span class="run-context-label">Viewed execution</span>
+          <small>Selecting another date opens its saved report.</small>
+        </div>
+        <div class="run-context-controls">
+          <div class="run-picker" id="runPicker">
+            <button class="run-trigger" id="runFilter" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="runPopover" aria-label="Choose execution by date" title="Choose execution by date">
+              <span id="runFilterLabel"></span>
+              <span class="run-trigger-caret" aria-hidden="true">▾</span>
+            </button>
+            <div class="run-popover" id="runPopover" role="dialog" aria-label="Choose execution by date" hidden>
+              <div class="run-popover-head">
+                <button type="button" class="run-month" id="runPrevMonth" aria-label="Previous month">‹</button>
+                <strong id="runMonthLabel"></strong>
+                <button type="button" class="run-month" id="runNextMonth" aria-label="Next month">›</button>
+              </div>
+              <div class="run-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+              <div class="run-days" id="runDays" role="group" aria-label="Execution dates"></div>
+              <div class="run-day-runs" id="runDayRuns"></div>
+            </div>
+          </div>
+          <a class="run-latest" id="latestRun" href="#" hidden>View latest run</a>
+        </div>
+      </div>
       <div class="filters">
         <input class="search-field" id="search" type="search" placeholder="Search tests, suites, specs" aria-label="Search report">
-        <div class="run-picker" id="runPicker">
-          <button class="run-trigger" id="runFilter" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="runPopover" aria-label="Choose execution by date" title="Choose execution by date">
-            <span class="run-trigger-kicker">Run</span>
-            <span id="runFilterLabel"></span>
-            <span class="run-trigger-caret" aria-hidden="true">▾</span>
-          </button>
-          <div class="run-popover" id="runPopover" role="dialog" aria-label="Choose execution by date" hidden>
-            <div class="run-popover-head">
-              <button type="button" class="run-month" id="runPrevMonth" aria-label="Previous month">‹</button>
-              <strong id="runMonthLabel"></strong>
-              <button type="button" class="run-month" id="runNextMonth" aria-label="Next month">›</button>
-            </div>
-            <div class="run-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
-            <div class="run-days" id="runDays" role="group" aria-label="Execution dates"></div>
-            <div class="run-day-runs" id="runDayRuns"></div>
-          </div>
-        </div>
         <select id="suiteFilter" aria-label="Filter by suite"></select>
         <select id="moduleFilter" aria-label="Filter by functional module"></select>
         <select id="specFilter" aria-label="Filter by spec file"></select>
@@ -418,7 +439,7 @@ ${actionLinks}
           <option value="all">All statuses</option><option value="passed">Passed</option><option value="failed">Failed</option><option value="skipped">Skipped</option><option value="flaky">Flaky</option>
         </select>
         <select id="browserFilter" aria-label="Filter by browser"></select>
-        <button class="clear" id="clearFilters" type="button">Clear filters</button>
+        <button class="clear" id="clearFilters" type="button">Reset test filters</button>
       </div>
       <p class="scope-note" id="filterScope"></p>
     </section>
@@ -878,6 +899,13 @@ ${actionLinks}
       pickerMonth = { year: Number(parts.year), monthIndex: monthIndexOf(parts.month) };
       pickerSelectedKey = runDateKey(report.run.startTime);
       byId('runFilterLabel').textContent = parts.day + ' ' + parts.month + ' ' + parts.year + ' · ' + parts.hour + ':' + parts.minute + ' ' + parts.dayPeriod.toUpperCase();
+      const latest = pickerRuns[0];
+      const latestLink = byId('latestRun');
+      if (latest && !latest.current && latest.dashboardPath) {
+        latestLink.href = latest.dashboardPath;
+        latestLink.hidden = false;
+        latestLink.setAttribute('aria-label', 'View latest execution from ' + formatDate(latest.startTime));
+      }
 
       byId('runFilter').addEventListener('click', () => {
         if (byId('runFilter').getAttribute('aria-expanded') === 'true') closeRunPicker(); else openRunPicker();
