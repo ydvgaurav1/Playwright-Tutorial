@@ -170,6 +170,7 @@ A **fixture** is test setup data or an object that Playwright creates and cleans
 
 - `package-lock.json`: npm-generated exact dependency graph; npm reads it during install. Do not hand-edit it, and review dependency changes in pull requests.
 - `README.md`: setup, verified evidence, architecture, and the file-by-file review you are reading.
+- `INSTALLATION_GUIDE.md`: complete teammate setup for the GitHub-distributed reporter in Playwright and JUnit XML projects.
 - `learning-guide/01-framework-architecture.md` through `10-interview-and-practice-questions.md`: lessons in recommended study order; they do not execute.
 - `docs/custom-reporting-guide.md`: custom reporter architecture, evidence, history, and operating commands.
 - `reporting/report-model.ts`: reusable suite/module classification and hierarchy aggregation.
