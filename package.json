@@ -10,6 +10,7 @@
     "test:ui": "playwright test --ui",
     "test:trace": "playwright test --trace on",
     "report": "node scripts/open-latest.cjs",
+    "report:rebuild": "npm run build:reporter && node scripts/rebuild-dashboards.cjs",
     "test:sanity": "playwright test --grep @sanity",
     "test:regression": "playwright test --grep @regression --grep-invert @demo",
     "test:reporting": "node --test reporting/report-model.test.cjs",

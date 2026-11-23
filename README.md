@@ -42,6 +42,7 @@ Never commit a real `.env`; `.env.example` contains only public demonstration va
 | `npm run test:ui` | Open Playwright UI Mode. |
 | `npm run test:trace` | Retain a trace for every test in that run. |
 | `npm run report` | Open `reports/latest/index.html`. |
+| `npm run report:rebuild` | Regenerate all historical dashboard HTML with the current UI template. |
 | `npm run test:reporting` | Verify report classification, aggregation, HTML contracts, and generated client syntax. |
 | `npm run typecheck` | Check TypeScript without emitting JavaScript. |
 
