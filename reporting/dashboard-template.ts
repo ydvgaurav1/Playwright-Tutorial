@@ -108,7 +108,7 @@ export function createDashboard(
       --failed: #fb7185;
       --skipped: #94a3b8;
       --flaky: #fbbf24;
-      --shadow: 0 16px 45px rgba(0, 0, 0, .28);
+      --shadow: 0 10px 28px rgba(0, 0, 0, .2);
       --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     }
     * { box-sizing: border-box; }
@@ -126,24 +126,25 @@ export function createDashboard(
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
     .mono { font-family: var(--font-mono); font-size: 11px; }
-    .container { width: min(1500px, calc(100% - 32px)); margin: 0 auto; }
+    .container { width: min(1540px, calc(100% - 28px)); margin: 0 auto; }
 
-    .hero { padding: 18px 0 16px; border-bottom: 1px solid var(--border); background: rgba(8, 17, 31, .55); }
-    .hero-row { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
-    .hero-copy { min-width: 0; }
-    .eyebrow { color: var(--accent); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; font-weight: 800; }
-    h1 { margin: 4px 0 5px; font-size: clamp(24px, 3vw, 34px); line-height: 1.1; letter-spacing: -.025em; }
-    .subtitle { margin: 0; color: var(--muted); font-size: 13px; }
-    .header-facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 9px; color: var(--muted); font-size: 12px; }
+    .hero { padding: 10px 0; border-bottom: 1px solid var(--border); background: rgba(8, 17, 31, .9); }
+    .hero-row { display: grid; grid-template-columns: minmax(250px, .8fr) minmax(420px, 1.2fr) auto; gap: 18px; align-items: center; }
+    .hero-copy, .hero-tools { min-width: 0; }
+    .eyebrow { color: var(--accent); font-size: 9px; letter-spacing: .12em; font-weight: 800; }
+    h1 { margin: 2px 0 3px; font-size: clamp(21px, 2.1vw, 28px); line-height: 1.1; letter-spacing: -.025em; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+    .header-facts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 6px; color: var(--muted); font-size: 11px; }
     .header-facts strong { color: var(--text); font-weight: 700; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; flex: 0 0 auto; }
-    .button { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; background: var(--surface-2); color: var(--text); text-decoration: none; font-size: 12px; font-weight: 700; }
+    .button { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; background: var(--surface-2); color: var(--text); text-decoration: none; font-size: 11.5px; font-weight: 700; }
     .button:hover, .button:focus-visible { border-color: var(--accent); outline: none; }
     .button .ext { color: var(--accent); margin-left: 2px; }
 
-    main { padding: 14px 0 48px; }
+    main { padding: 10px 0 36px; }
 
-    .verdict { margin-top: 12px; padding: 18px 20px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; box-shadow: var(--shadow); background: linear-gradient(150deg, rgba(23, 38, 59, .96), rgba(12, 24, 40, .96)); }
+    .summary-shell { display: grid; grid-template-columns: minmax(245px, .55fr) minmax(0, 1.45fr); border: 1px solid var(--border); border-radius: 10px; background: linear-gradient(150deg, rgba(23, 38, 59, .94), rgba(12, 24, 40, .94)); box-shadow: var(--shadow); overflow: hidden; }
+    .verdict { min-width: 0; padding: 13px 15px; border-left: 4px solid var(--accent); }
     .verdict.is-failed { border-left-color: var(--failed); }
     .verdict.is-warning { border-left-color: var(--flaky); }
     .verdict.is-passed { border-left-color: var(--passed); }
@@ -151,8 +152,9 @@ export function createDashboard(
     .verdict.is-failed .verdict-kicker { color: var(--failed); }
     .verdict.is-warning .verdict-kicker { color: var(--flaky); }
     .verdict.is-passed .verdict-kicker { color: var(--passed); }
-    .verdict h2 { margin: 4px 0 0; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; letter-spacing: -.02em; }
-    .verdict-sub { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .verdict h2 { margin: 2px 0 0; font-size: clamp(18px, 2vw, 23px); line-height: 1.15; letter-spacing: -.02em; }
+    .verdict-sub { margin: 4px 0 0; color: var(--muted); font-size: 11.5px; }
+    .verdict-action { margin-top: 9px; }
     .failure-list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 9px; }
     .failure { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: rgba(8, 17, 31, .55); }
     .failure-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
@@ -179,37 +181,37 @@ export function createDashboard(
     .digest-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
     .digest-note { margin: 0; color: var(--muted); font-size: 12px; }
 
-    .cards { display: grid; grid-template-columns: repeat(6, minmax(105px, 1fr)); gap: 8px; margin-top: 12px; }
-    .card, .panel { background: linear-gradient(150deg, rgba(23, 38, 59, .96), rgba(12, 24, 40, .96)); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
-    .card { --metric-color: var(--accent); position: relative; overflow: hidden; padding: 11px 13px; text-align: left; color: var(--text); }
-    .card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--metric-color); }
+    .summary-data { min-width: 0; padding: 10px 12px; border-left: 1px solid var(--border); }
+    .cards { display: grid; grid-template-columns: repeat(6, minmax(72px, 1fr)); gap: 4px; }
+    .card, .panel { background: linear-gradient(150deg, rgba(23, 38, 59, .96), rgba(12, 24, 40, .96)); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+    .card { --metric-color: var(--accent); position: relative; overflow: hidden; min-height: 51px; padding: 7px 9px; text-align: left; color: var(--text); box-shadow: none; background: rgba(8, 17, 31, .42); }
+    .card::before { content: ""; position: absolute; inset: auto 0 0 0; height: 2px; background: var(--metric-color); }
     .metric-total { --metric-color: var(--accent); }
     .metric-passed { --metric-color: var(--passed); }
     .metric-failed { --metric-color: var(--failed); }
     .metric-skipped { --metric-color: var(--skipped); }
     .metric-flaky { --metric-color: var(--flaky); }
     .metric-rate { --metric-color: #a78bfa; }
-    button.card:hover, button.card:focus-visible { border-color: var(--metric-color); outline: none; transform: translateY(-1px); }
-    .card-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .09em; }
-    .card-value { display: block; font-size: 24px; line-height: 1; font-weight: 800; margin-top: 5px; }
+    button.card:hover, button.card:focus-visible { border-color: var(--metric-color); outline: none; }
+    .card-label { color: var(--muted); font-size: 9.5px; }
+    .card-value { display: block; margin-top: 2px; font-size: 19px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; }
 
-    .panel { padding: 16px; margin-top: 12px; }
-    .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
-    .panel h2, .panel-head h2 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
-    .panel-head p { margin: 0; color: var(--muted); font-size: 12px; }
+    .panel { padding: 12px; margin-top: 9px; }
+    .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+    .panel h2, .panel-head h2 { margin: 0; font-size: 15px; letter-spacing: -.01em; }
+    .panel-head p { margin: 0; color: var(--muted); font-size: 11.5px; }
 
-    .health-panel { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(16, 28, 46, .82); }
-    .health-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-    .health-head h2 { margin: 0; font-size: 14px; }
-    .health-head p { margin: 0; color: var(--muted); font-size: 12px; }
-    .health-bar { display: flex; width: 100%; height: 9px; overflow: hidden; border-radius: 999px; background: #25354a; }
+    .health-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 8px 0 5px; }
+    .health-head h2 { margin: 0; color: var(--muted); font-size: 10.5px; font-weight: 700; }
+    .health-head p { margin: 0; color: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+    .health-bar { display: flex; width: 100%; height: 6px; overflow: hidden; border-radius: 999px; background: #25354a; }
     .health-segment { min-width: 3px; height: 100%; padding: 0; border: 0; border-right: 2px solid var(--surface); }
     .health-segment:last-child { border-right: 0; }
     .health-segment:hover, .health-segment:focus-visible { filter: brightness(1.25); outline: 2px solid var(--text); outline-offset: -2px; }
-    .health-note { margin: 7px 0 0; color: var(--muted); font-size: 11px; }
+    .health-note { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
 
-    .environment-details { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(11, 23, 40, .68); }
-    .environment-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 9px 12px; cursor: pointer; font-size: 12px; font-weight: 800; list-style: none; }
+    .environment-details { margin-top: 9px; border: 1px solid var(--border); border-radius: 9px; background: rgba(11, 23, 40, .68); }
+    .environment-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 7px 10px; cursor: pointer; font-size: 11.5px; font-weight: 800; list-style: none; }
     .environment-details > summary::-webkit-details-marker { display: none; }
     .environment-details > summary::after { content: "+"; color: var(--accent); font-size: 17px; font-weight: 400; }
     .environment-details[open] > summary::after { content: "−"; }
@@ -220,29 +222,45 @@ export function createDashboard(
     .meta-item span { display: block; margin-bottom: 3px; color: var(--muted); font-size: 10px; font-weight: 400; text-transform: uppercase; letter-spacing: .05em; }
     .meta-item strong { display: block; font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
 
-    .run-context { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 12px; padding: 11px 12px; border: 1px solid rgba(103, 232, 249, .22); border-radius: 10px; background: linear-gradient(90deg, rgba(103, 232, 249, .07), rgba(11, 23, 40, .55) 48%); }
-    .run-context-copy { min-width: 190px; }
-    .run-context-label { display: block; color: var(--text); font-size: 12px; font-weight: 800; }
-    .run-context-copy small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
-    .run-context-controls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; width: min(100%, 470px); }
-    .run-latest { flex: none; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--accent); background: rgba(8, 17, 31, .42); font-size: 11.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .run-context { display: flex; align-items: center; gap: 7px; }
+    .run-context-label { flex: none; color: var(--muted); font-size: 10.5px; font-weight: 700; }
+    .run-context-controls { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+    .run-latest { flex: none; border: 1px solid var(--border); border-radius: 7px; padding: 6px 8px; color: var(--accent); background: rgba(8, 17, 31, .42); font-size: 10.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
     .run-latest:hover, .run-latest:focus-visible { border-color: var(--accent); outline: none; }
     .run-latest[hidden] { display: none; }
-    .filters { display: grid; grid-template-columns: minmax(220px, 1.6fr) repeat(5, minmax(125px, 1fr)) auto; gap: 8px; }
+    .filter-panel { padding: 8px 10px; }
+    .filters { display: grid; grid-template-columns: minmax(240px, 1.8fr) minmax(130px, .7fr) minmax(130px, .7fr) auto; gap: 6px; align-items: start; }
     .filters > * { min-width: 0; }
     .search-field { min-width: 180px; }
-    input, select { width: 100%; min-height: 38px; border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; color: var(--text); background: #0b1728; }
+    input, select { width: 100%; min-height: 34px; border: 1px solid var(--border); border-radius: 7px; padding: 6px 9px; color: var(--text); background: #0b1728; font-size: 12px; }
     input::placeholder { color: var(--muted); }
     input:focus, select:focus { border-color: var(--accent); outline: none; }
-    .clear { border: 1px solid var(--border); border-radius: 9px; padding: 8px 11px; color: var(--text); background: var(--surface-2); white-space: nowrap; }
+    .select-control { position: relative; min-width: 0; }
+    .native-select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+    .select-trigger { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 34px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; background: #0b1728; color: var(--text); text-align: left; font-size: 12px; }
+    .select-trigger:hover, .select-trigger:focus-visible, .select-trigger[aria-expanded="true"] { border-color: var(--accent); outline: none; }
+    .select-trigger-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .select-caret { color: var(--muted); font-size: 10px; transition: transform .15s ease; }
+    .select-trigger[aria-expanded="true"] .select-caret { color: var(--accent); transform: rotate(180deg); }
+    .select-listbox { position: absolute; z-index: 45; top: calc(100% + 5px); left: 0; width: 100%; min-width: 170px; max-height: 240px; overflow-y: auto; padding: 5px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); box-shadow: 0 14px 32px rgba(0, 0, 0, .42); }
+    .select-listbox[hidden] { display: none; }
+    .select-option { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 32px; padding: 6px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--text); text-align: left; font-size: 12px; }
+    .select-option::before { content: ""; width: 13px; color: var(--accent); font-weight: 900; text-align: center; }
+    .select-option[aria-selected="true"] { background: rgba(103, 232, 249, .11); color: var(--accent); }
+    .select-option[aria-selected="true"]::before { content: "✓"; }
+    .select-option:hover, .select-option:focus-visible { background: var(--surface-2); color: var(--text); outline: none; }
+    .clear { min-height: 34px; border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; color: var(--text); background: var(--surface-2); white-space: nowrap; font-size: 12px; }
     .clear:hover, .clear:focus-visible { border-color: var(--accent); outline: none; }
-    .scope-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+    .scope-note { margin: 5px 1px 0; color: var(--muted); font-size: 10.5px; }
+    .advanced-filters { margin-top: 6px; border-top: 1px solid var(--border); }
+    .advanced-filters > summary { width: max-content; padding: 6px 2px 0; color: var(--accent); cursor: pointer; font-size: 11px; font-weight: 700; }
+    .advanced-filter-grid { display: grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); gap: 6px; margin-top: 6px; }
 
-    .run-picker { position: relative; flex: 1; width: 100%; min-width: 220px; }
-    .run-trigger { display: flex; align-items: center; gap: 7px; width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px; background: #0b1728; color: var(--text); text-align: left; }
+    .run-picker { position: relative; flex: 1; width: 100%; min-width: 210px; }
+    .run-trigger { display: flex; align-items: center; gap: 7px; width: 100%; min-height: 32px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; background: #0b1728; color: var(--text); text-align: left; }
     .run-trigger:hover, .run-trigger:focus-visible, .run-trigger[aria-expanded="true"] { border-color: var(--accent); outline: none; }
     .run-trigger-kicker { color: var(--muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
-    .run-trigger #runFilterLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+    .run-trigger #runFilterLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-variant-numeric: tabular-nums; }
     .run-trigger-caret { color: var(--accent); font-size: 11px; }
     .run-popover { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; width: 300px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
     .run-popover[hidden] { display: none; }
@@ -267,10 +285,10 @@ export function createDashboard(
     .run-time small { color: var(--muted); font-size: 10.5px; white-space: nowrap; }
     .run-empty-note { margin: 8px 0 0; color: var(--muted); font-size: 11.5px; }
 
-    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
     table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12.5px; }
-    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
-    th { color: var(--muted); font-size: 11px; font-weight: 400; text-transform: uppercase; letter-spacing: .06em; background: rgba(8, 17, 31, .7); white-space: nowrap; }
+    th, td { padding: 7px 9px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .02em; background: rgba(8, 17, 31, .7); white-space: nowrap; }
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr.clickable { cursor: pointer; }
     tbody tr.clickable:hover, tbody tr.clickable:focus { background: rgba(103, 232, 249, .06); outline: none; }
@@ -280,7 +298,7 @@ export function createDashboard(
     tr.row-failed td:first-child { box-shadow: inset 3px 0 0 var(--failed); }
     tr.row-flaky td:first-child { box-shadow: inset 3px 0 0 var(--flaky); }
 
-    .status { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    .status { display: inline-flex; align-items: center; border-radius: 999px; padding: 2px 7px; font-size: 9.5px; font-weight: 800; letter-spacing: .02em; }
     .status-passed { color: #052e22; background: var(--passed); }
     .status-failed { color: #4c0519; background: var(--failed); }
     .status-skipped { color: #111827; background: var(--skipped); }
@@ -358,37 +376,47 @@ export function createDashboard(
     .empty { margin: 0; padding: 18px; color: var(--muted); font-size: 12px; text-align: center; }
 
     @media (max-width: 1250px) {
-      .filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .filters .search-field { grid-column: span 2; }
+      .hero-row { grid-template-columns: minmax(240px, .8fr) minmax(390px, 1.2fr); }
+      .actions { grid-column: 1 / -1; justify-content: flex-end; margin-top: -4px; }
     }
     @media (max-width: 1000px) {
-      .cards { grid-template-columns: repeat(3, 1fr); }
+      .summary-shell { grid-template-columns: 1fr; }
+      .summary-data { border-top: 1px solid var(--border); border-left: 0; }
+      .cards { grid-template-columns: repeat(6, 1fr); }
       .analytics-grid { grid-template-columns: 1fr; }
       .metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .two-col { grid-template-columns: 1fr; }
     }
     @media (max-width: 650px) {
       .container { width: min(100% - 20px, 1500px); }
-      .hero { padding: 14px 0; }
-      .hero-row { flex-direction: column; align-items: stretch; gap: 12px; }
+      .hero { padding: 9px 0; }
+      .hero-row { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+      .header-facts { margin-bottom: 5px; }
       .actions { justify-content: flex-start; }
-      .cards { grid-template-columns: repeat(2, 1fr); }
-      .filters, .metadata, .details-grid, .comparison { grid-template-columns: 1fr; }
-      .filters .search-field { grid-column: auto; }
-      .run-context { align-items: stretch; flex-direction: column; gap: 9px; }
-      .run-context-controls { align-items: stretch; flex-direction: column; width: 100%; }
+      .summary-shell { border-radius: 9px; }
+      .verdict { padding: 11px 12px; }
+      .summary-data { padding: 8px; }
+      .cards { grid-template-columns: repeat(3, 1fr); }
+      .filters { grid-template-columns: 1fr 1fr auto; }
+      .filters .search-field { grid-column: 1 / -1; }
+      .advanced-filter-grid, .metadata, .details-grid, .comparison { grid-template-columns: 1fr; }
+      .run-context { align-items: flex-start; flex-direction: column; gap: 3px; }
+      .run-context-controls { align-items: stretch; width: 100%; }
       .run-picker { min-width: 0; }
       .run-latest { text-align: center; }
       .chart-wrap { justify-content: center; }
       .health-head, .panel-head { align-items: flex-start; flex-direction: column; gap: 3px; }
       .environment-details > summary small { display: none; }
       .failure-head { flex-direction: column; gap: 4px; }
-      table { min-width: 520px; }
+      table { min-width: 360px; }
       .run-popover { width: calc(100vw - 60px); max-width: 320px; }
       .run-day-runs { max-height: 128px; overscroll-behavior: contain; }
-      .hide-sm { display: none; }
+      .hide-sm, .hide-xs { display: none; }
       .trend { min-width: 720px; }
-      .verdict { padding: 14px; }
+      .table-wrap { margin-inline: -3px; }
+      .test-table th:first-child, .test-table td:first-child { min-width: 180px; }
+      .panel { padding: 9px; }
+      .filter-panel { padding: 8px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
@@ -401,11 +429,33 @@ export function createDashboard(
       <div class="hero-copy">${eyebrowHtml}
         <h1>${escapeHtml(resolved.title)}</h1>
         <p class="subtitle" id="runSubtitle"></p>
+      </div>
+      <div class="hero-tools">
         <div class="header-facts">
-          <span>Run <strong id="headerRun"></strong></span>
           <span>Browser <strong id="headerBrowser"></strong></span>
-          <span>Project <strong id="headerProject"></strong></span>
           <span>Environment <strong id="headerEnvironment"></strong></span>
+        </div>
+        <div class="run-context">
+          <span class="run-context-label">Viewed execution</span>
+          <div class="run-context-controls">
+            <div class="run-picker" id="runPicker">
+              <button class="run-trigger" id="runFilter" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="runPopover" aria-label="Choose execution by date" title="Choose execution by date">
+                <span id="runFilterLabel"></span>
+                <span class="run-trigger-caret" aria-hidden="true">▾</span>
+              </button>
+              <div class="run-popover" id="runPopover" role="dialog" aria-label="Choose execution by date" hidden>
+                <div class="run-popover-head">
+                  <button type="button" class="run-month" id="runPrevMonth" aria-label="Previous month">‹</button>
+                  <strong id="runMonthLabel"></strong>
+                  <button type="button" class="run-month" id="runNextMonth" aria-label="Next month">›</button>
+                </div>
+                <div class="run-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+                <div class="run-days" id="runDays" role="group" aria-label="Execution dates"></div>
+                <div class="run-day-runs" id="runDayRuns"></div>
+              </div>
+            </div>
+            <a class="run-latest" id="latestRun" href="#" hidden>View latest run</a>
+          </div>
         </div>
       </div>
       <nav class="actions" aria-label="Report actions">
@@ -415,77 +465,57 @@ ${actionLinks}
   </header>
 
   <main class="container">
-    <section class="verdict" id="verdict" aria-labelledby="verdictHeadline"></section>
-
-    <section class="cards" aria-label="Run summary">
-      <button class="card metric-total" type="button" data-summary-filter="all"><span class="card-label">Total</span><strong class="card-value" id="totalCount">0</strong></button>
-      <button class="card metric-passed" type="button" data-summary-filter="passed"><span class="card-label">Passed</span><strong class="card-value" id="passedCount">0</strong></button>
-      <button class="card metric-failed" type="button" data-summary-filter="failed"><span class="card-label">Failed</span><strong class="card-value" id="failedCount">0</strong></button>
-      <button class="card metric-skipped" type="button" data-summary-filter="skipped"><span class="card-label">Skipped</span><strong class="card-value" id="skippedCount">0</strong></button>
-      <button class="card metric-flaky" type="button" data-summary-filter="flaky"><span class="card-label">Flaky</span><strong class="card-value" id="flakyCount">0</strong></button>
-      <div class="card metric-rate"><span class="card-label">Pass rate</span><strong class="card-value" id="passRate">0%</strong></div>
-    </section>
-
-    <section class="health-panel" aria-labelledby="healthTitle">
-      <div class="health-head"><h2 id="healthTitle">Execution health</h2><p id="healthHeadline"></p></div>
-      <div class="health-bar" id="healthBar" role="group" aria-label="Run result distribution"></div>
-      <p class="health-note">Select a segment, metric, or legend entry to filter results.</p>
-    </section>
-
-    <details class="environment-details">
-      <summary><span>Execution details</span><small>Duration, operating system, runtime, URL and ${escapeHtml(resolved.timestampsLabel)}</small></summary>
-      <div class="metadata" id="metadata"></div>
-    </details>
-
-    <section class="panel" aria-labelledby="filtersTitle">
-      <div class="panel-head"><h2 id="filtersTitle">Refine results</h2><p>Combine filters to narrow the tests shown in this execution.</p></div>
-      <div class="run-context">
-        <div class="run-context-copy">
-          <span class="run-context-label">Viewed execution</span>
-          <small>Selecting another date opens its saved report.</small>
+    <section class="summary-shell" aria-label="Run verdict and metrics">
+      <section class="verdict" id="verdict" aria-labelledby="verdictHeadline" aria-live="polite"></section>
+      <div class="summary-data">
+        <div class="cards" aria-label="Run summary">
+          <button class="card metric-total" type="button" data-summary-filter="all"><span class="card-label">Total</span><strong class="card-value" id="totalCount">0</strong></button>
+          <button class="card metric-passed" type="button" data-summary-filter="passed"><span class="card-label">Passed</span><strong class="card-value" id="passedCount">0</strong></button>
+          <button class="card metric-failed" type="button" data-summary-filter="failed"><span class="card-label">Failed</span><strong class="card-value" id="failedCount">0</strong></button>
+          <button class="card metric-skipped" type="button" data-summary-filter="skipped"><span class="card-label">Skipped</span><strong class="card-value" id="skippedCount">0</strong></button>
+          <button class="card metric-flaky" type="button" data-summary-filter="flaky"><span class="card-label">Flaky</span><strong class="card-value" id="flakyCount">0</strong></button>
+          <div class="card metric-rate"><span class="card-label">Pass rate</span><strong class="card-value" id="passRate">0%</strong></div>
         </div>
-        <div class="run-context-controls">
-          <div class="run-picker" id="runPicker">
-            <button class="run-trigger" id="runFilter" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="runPopover" aria-label="Choose execution by date" title="Choose execution by date">
-              <span id="runFilterLabel"></span>
-              <span class="run-trigger-caret" aria-hidden="true">▾</span>
-            </button>
-            <div class="run-popover" id="runPopover" role="dialog" aria-label="Choose execution by date" hidden>
-              <div class="run-popover-head">
-                <button type="button" class="run-month" id="runPrevMonth" aria-label="Previous month">‹</button>
-                <strong id="runMonthLabel"></strong>
-                <button type="button" class="run-month" id="runNextMonth" aria-label="Next month">›</button>
-              </div>
-              <div class="run-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
-              <div class="run-days" id="runDays" role="group" aria-label="Execution dates"></div>
-              <div class="run-day-runs" id="runDayRuns"></div>
-            </div>
-          </div>
-          <a class="run-latest" id="latestRun" href="#" hidden>View latest run</a>
-        </div>
+        <div class="health-head"><h2 id="healthTitle">Result distribution</h2><p id="healthHeadline"></p></div>
+        <div class="health-bar" id="healthBar" role="group" aria-label="Run result distribution"></div>
+        <p class="health-note">Run totals stay fixed; selecting a metric filters the table.</p>
       </div>
-      <div class="filters">
+    </section>
+
+    <section class="panel filter-panel" aria-label="Search and filter test results">
+      <h2 class="sr-only" id="filtersTitle">Refine results</h2>
+      <div class="filters" aria-labelledby="filtersTitle">
         <input class="search-field" id="search" type="search" placeholder="Search tests, suites, specs" aria-label="Search report">
-        <select id="suiteFilter" aria-label="Filter by suite"></select>
-        <select id="moduleFilter" aria-label="Filter by functional module"></select>
-        <select id="specFilter" aria-label="Filter by spec file"></select>
         <select id="statusFilter" aria-label="Filter by status">
           <option value="all">All statuses</option><option value="passed">Passed</option><option value="failed">Failed</option><option value="skipped">Skipped</option><option value="flaky">Flaky</option>
         </select>
         <select id="browserFilter" aria-label="Filter by browser"></select>
         <button class="clear" id="clearFilters" type="button">Reset all</button>
       </div>
+      <details class="advanced-filters">
+        <summary id="advancedFiltersLabel">Advanced filters</summary>
+        <div class="advanced-filter-grid">
+          <select id="suiteFilter" aria-label="Filter by suite"></select>
+          <select id="moduleFilter" aria-label="Filter by functional module"></select>
+          <select id="specFilter" aria-label="Filter by spec file"></select>
+        </div>
+      </details>
       <p class="scope-note" id="filterScope"></p>
     </section>
 
     <section class="panel" aria-labelledby="testsTitle">
       <div class="panel-head"><h2 id="testsTitle">Test execution</h2><p>Failed and flaky results first. Select a row for evidence.</p></div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Test</th><th class="hide-sm">Suite(s)</th><th class="hide-sm">Module / Spec</th><th>Status</th><th>Started (${escapeHtml(resolved.timezoneLabel)})</th><th class="num">Duration</th><th class="hide-sm">${escapeHtml(resolved.variantColumnLabel)}</th><th class="num hide-sm">Retries</th></tr></thead>
+      <div class="table-wrap"><table class="test-table">
+        <thead><tr><th>Test</th><th class="hide-sm">Suite(s)</th><th class="hide-sm">Module / Spec</th><th>Status</th><th class="hide-xs">Started (${escapeHtml(resolved.timezoneLabel)})</th><th class="num">Duration</th><th class="hide-sm">${escapeHtml(resolved.variantColumnLabel)}</th><th class="num hide-sm">Retries</th></tr></thead>
         <tbody id="testRows"></tbody>
       </table></div>
       <p class="empty" id="noTests" hidden>No test results match the current filters. Clear or change filters to continue.</p>
     </section>
+
+    <details class="environment-details">
+      <summary><span>Execution details</span><small>Duration, operating system, runtime, URL and ${escapeHtml(resolved.timestampsLabel)}</small></summary>
+      <div class="metadata" id="metadata"></div>
+    </details>
 
     <section class="panel" aria-labelledby="specsTitle">
       <div class="panel-head"><h2 id="specsTitle">Spec files</h2><p>Failed specs first.</p></div>
@@ -637,6 +667,129 @@ ${actionLinks}
       values.forEach((value) => {
         const option = document.createElement('option');
         option.value = value; option.textContent = labelFor ? labelFor(value) : displayName(value); select.append(option);
+      });
+    }
+
+    const customSelectControls = [];
+
+    function syncCustomSelect(control) {
+      const select = control.querySelector('select');
+      const selected = select.options[select.selectedIndex] || select.options[0];
+      const label = selected ? selected.textContent : 'Choose an option';
+      control.querySelector('.select-trigger-label').textContent = label;
+      control.querySelector('.select-trigger').setAttribute('aria-label', (select.getAttribute('aria-label') || 'Filter') + ': ' + label);
+      control.querySelectorAll('.select-option').forEach((option) => {
+        option.setAttribute('aria-selected', String(option.dataset.value === select.value));
+      });
+    }
+
+    function closeCustomSelect(control, restoreFocus) {
+      const listbox = control.querySelector('.select-listbox');
+      const trigger = control.querySelector('.select-trigger');
+      if (listbox.hidden) return;
+      listbox.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) trigger.focus();
+    }
+
+    function closeCustomSelects(except) {
+      customSelectControls.forEach((control) => {
+        if (control !== except) closeCustomSelect(control, false);
+      });
+    }
+
+    function openCustomSelect(control, focusLast) {
+      closeCustomSelects(control);
+      const listbox = control.querySelector('.select-listbox');
+      const trigger = control.querySelector('.select-trigger');
+      listbox.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      const options = [...control.querySelectorAll('.select-option')];
+      const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
+      const target = focusLast ? options.at(-1) : selected || options[0];
+      if (target) target.focus();
+    }
+
+    function initializeCustomSelect(select) {
+      if (select.hidden) return;
+      const control = document.createElement('div');
+      control.className = 'select-control';
+      control.dataset.selectId = select.id;
+      select.parentNode.insertBefore(control, select);
+      control.append(select);
+      select.classList.add('native-select');
+      select.tabIndex = -1;
+      select.setAttribute('aria-hidden', 'true');
+
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'select-trigger';
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', 'false');
+      const listboxId = select.id + 'Listbox';
+      trigger.setAttribute('aria-controls', listboxId);
+      trigger.append(textElement('span', '', 'select-trigger-label'), textElement('span', '▾', 'select-caret'));
+
+      const listbox = document.createElement('div');
+      listbox.id = listboxId;
+      listbox.className = 'select-listbox';
+      listbox.setAttribute('role', 'listbox');
+      listbox.setAttribute('aria-label', select.getAttribute('aria-label') || 'Filter options');
+      listbox.hidden = true;
+
+      [...select.options].forEach((nativeOption) => {
+        const option = textElement('button', nativeOption.textContent, 'select-option');
+        option.type = 'button';
+        option.setAttribute('role', 'option');
+        option.dataset.value = nativeOption.value;
+        option.addEventListener('click', () => {
+          select.value = nativeOption.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          syncCustomSelect(control);
+          closeCustomSelect(control, true);
+        });
+        option.addEventListener('keydown', (event) => {
+          const options = [...listbox.querySelectorAll('.select-option')];
+          const index = options.indexOf(option);
+          let target;
+          if (event.key === 'ArrowDown') target = options[(index + 1) % options.length];
+          if (event.key === 'ArrowUp') target = options[(index - 1 + options.length) % options.length];
+          if (event.key === 'Home') target = options[0];
+          if (event.key === 'End') target = options.at(-1);
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            closeCustomSelect(control, true);
+            return;
+          }
+          if (target) {
+            event.preventDefault();
+            target.focus();
+          }
+        });
+        listbox.append(option);
+      });
+
+      trigger.addEventListener('click', () => {
+        if (trigger.getAttribute('aria-expanded') === 'true') closeCustomSelect(control, false);
+        else openCustomSelect(control, false);
+      });
+      trigger.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          openCustomSelect(control, event.key === 'ArrowUp');
+        }
+      });
+      control.append(trigger, listbox);
+      customSelectControls.push(control);
+      syncCustomSelect(control);
+    }
+
+    function initializeCustomSelects() {
+      document.querySelectorAll('.filters select, .advanced-filter-grid select').forEach(initializeCustomSelect);
+      document.addEventListener('click', (event) => {
+        customSelectControls.forEach((control) => {
+          if (!event.composedPath().includes(control)) closeCustomSelect(control, false);
+        });
       });
     }
 
@@ -836,50 +989,23 @@ ${actionLinks}
 
       const sub = [];
       if (summary.total > 0) {
-        sub.push(summary.passed + ' of ' + summary.total + ' passed');
-        sub.push(formatDuration(summary.durationMs) + ' total');
+        sub.push(summary.passPercentage + '% pass rate');
+        sub.push(formatDuration(summary.durationMs));
       } else {
         sub.push('Check the raw runner output for details.');
       }
       section.append(textElement('p', sub.join(' · '), 'verdict-sub'));
 
       if (failed.length) {
-        if (failed.length > failureDigestThreshold) {
-          renderFailureDigest(failed, section);
-        } else {
-          const list = document.createElement('ul'); list.className = 'failure-list';
-          failed.slice(0, 5).forEach((test) => {
-            const item = document.createElement('li'); item.className = 'failure';
-            const head = document.createElement('div'); head.className = 'failure-head';
-            head.append(textElement('strong', test.title));
-            item.append(head, textElement('p', reasonText(test), 'failure-reason'));
-
-            const meta = document.createElement('div'); meta.className = 'failure-meta';
-            meta.append(textElement('span', test.spec.path + ':' + test.line + ':' + test.column, 'mono'),
-              textElement('span', formatDuration(test.durationMs)),
-              textElement('span', 'Suite: ' + (test.suites.length ? test.suites.map(displayName).join(', ') : 'Unclassified')));
-            item.append(meta);
-
-            const foot = document.createElement('div'); foot.className = 'failure-foot';
-            const chips = document.createElement('ul'); chips.className = 'chips';
-            const evidence = evidenceSummary(test);
-            if (evidence.size === 0) chips.append(textElement('li', 'No evidence captured', 'chip'));
-            evidence.forEach((count, kind) => chips.append(textElement('li', displayName(kind) + (count > 1 ? ' ×' + count : ''), 'chip')));
-            const details = textElement('button', 'View evidence', 'link-button'); details.type = 'button';
-            details.addEventListener('click', () => openDetails(test));
-            foot.append(chips, details);
-            item.append(foot);
-            list.append(item);
-          });
-          section.append(list);
-          if (failed.length > 5) {
-            const more = textElement('button', 'Review all ' + failed.length + ' failed tests', 'link-button');
-            more.type = 'button';
-            more.style.marginTop = '10px';
-            more.addEventListener('click', () => filterToFailures());
-            section.append(more);
-          }
-        }
+        const review = textElement('button', 'Review failed tests', 'link-button verdict-action');
+        review.type = 'button';
+        review.addEventListener('click', () => filterToFailures());
+        section.append(review);
+      } else if (flaky.length) {
+        const review = textElement('button', 'Review flaky tests', 'link-button verdict-action');
+        review.type = 'button';
+        review.addEventListener('click', () => setFilter('status', 'flaky', 'testsTitle'));
+        section.append(review);
       }
 
       if (report.globalErrors.length) {
@@ -933,7 +1059,7 @@ ${actionLinks}
       const parts = dateParts(report.run.startTime);
       pickerMonth = { year: Number(parts.year), monthIndex: monthIndexOf(parts.month) };
       pickerSelectedKey = runDateKey(report.run.startTime);
-      byId('runFilterLabel').textContent = parts.day + ' ' + parts.month + ' ' + parts.year + ' · ' + parts.hour + ':' + parts.minute + ' ' + parts.dayPeriod.toUpperCase();
+      byId('runFilterLabel').textContent = report.run.id + ' · ' + parts.day + ' ' + parts.month + ' · ' + parts.hour + ':' + parts.minute + ' ' + parts.dayPeriod.toUpperCase();
       const latest = pickerRuns[0];
       latestPickerRun = latest;
       const latestLink = byId('latestRun');
@@ -1045,9 +1171,7 @@ ${actionLinks}
 
     function initialize() {
       byId('runSubtitle').textContent = formatDate(report.run.startTime);
-      byId('headerRun').textContent = report.run.id;
       byId('headerBrowser').textContent = report.metadata.browsers.join(', ') || 'Not captured';
-      byId('headerProject').textContent = report.metadata.projects.join(', ') || 'Not captured';
       byId('headerEnvironment').textContent = report.metadata.environment;
 
       initializeRunPicker();
@@ -1068,6 +1192,7 @@ ${actionLinks}
         option.value = 'all'; option.textContent = 'All browsers'; browserFilter.append(option);
         browserFilter.hidden = true;
       }
+      initializeCustomSelects();
 
       const metadata = [
         ['Run ID', report.run.id], ['Run duration', formatDuration(report.summary.durationMs)],
@@ -1123,8 +1248,13 @@ ${actionLinks}
       const total = report.tests.length;
       if (total === 0) {
         byId('filterScope').textContent = 'No tests recorded in this run';
+        byId('advancedFiltersLabel').textContent = 'Advanced filters';
         return;
       }
+      const advancedCount = ['suite', 'module', 'spec'].filter((name) => filters[name] !== 'all').length;
+      byId('advancedFiltersLabel').textContent = advancedCount
+        ? 'Advanced filters (' + advancedCount + ' active)'
+        : 'Advanced filters';
       byId('filterScope').textContent = active.length
         ? 'Showing ' + tests.length + ' of ' + total + ' test' + (total === 1 ? '' : 's') + ' · ' + active.join(' · ')
         : 'Showing all ' + total + ' test' + (total === 1 ? '' : 's') + ' · no filters active';
@@ -1202,7 +1332,7 @@ ${actionLinks}
         const statusCell = document.createElement('td'); statusCell.append(statusBadge(test.status));
         const insight = failureInsight(test); if (insight) statusCell.append(document.createElement('br'), textElement('span', insight.text, insight.className));
         row.append(testCell, textElement('td', test.suites.length ? test.suites.map(displayName).join(', ') : 'Unclassified', 'hide-sm'), locationCell, statusCell,
-          textElement('td', formatTime(test.attempts[0]?.startTime || report.run.startTime)), textElement('td', formatDuration(test.durationMs), 'num'),
+          textElement('td', formatTime(test.attempts[0]?.startTime || report.run.startTime), 'hide-xs'), textElement('td', formatDuration(test.durationMs), 'num'),
           textElement('td', variantLabel(test), 'hide-sm'), textElement('td', test.retryAttempts + ' / ' + test.retriesConfigured, 'num hide-sm'));
         row.addEventListener('click', () => openDetails(test));
         row.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDetails(test); } }); body.append(row);
@@ -1437,6 +1567,7 @@ ${actionLinks}
       const tests = filteredTests();
       renderScope(tests);
       renderSuites(); renderModules(); renderSpecs(); renderTests(tests); renderHistory();
+      customSelectControls.forEach(syncCustomSelect);
     }
 
     ['search', 'suiteFilter', 'moduleFilter', 'specFilter', 'statusFilter', 'browserFilter'].forEach((id) => {

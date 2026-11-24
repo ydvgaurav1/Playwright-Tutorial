@@ -286,12 +286,20 @@ test("separates run navigation from resettable test filters", () => {
   assert.match(html, /class="run-context"/);
   assert.match(html, /<span class="run-context-label">Viewed execution<\/span>/);
   assert.match(html, /id="latestRun"[^>]*>View latest run<\/a>/);
+  assert.match(html, /class="advanced-filters"/);
+  assert.match(html, /id="advancedFiltersLabel"/);
   assert.match(html, />Reset all<\/button>/);
   assert.doesNotMatch(html, />Clear filters<\/button>/);
 
   const runContextIndex = html.indexOf('class="run-context"');
   const filtersIndex = html.indexOf('class="filters"');
   const runPickerIndex = html.indexOf('class="run-picker"');
+  const testsIndex = html.indexOf('aria-labelledby="testsTitle"');
+  const metadataIndex = html.indexOf('class="environment-details"');
   assert.ok(runContextIndex < filtersIndex);
   assert.ok(runPickerIndex > runContextIndex && runPickerIndex < filtersIndex);
+  assert.ok(
+    testsIndex < metadataIndex,
+    "the actionable execution table should appear before secondary metadata",
+  );
 });

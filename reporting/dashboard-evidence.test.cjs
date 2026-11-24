@@ -205,6 +205,20 @@ test("renders, previews, and downloads universal evidence without regressing med
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(`${hosted.origin}/dashboard/index.html`);
+  const statusControl = page.locator(
+    '[data-select-id="statusFilter"]',
+  );
+  assert.equal(await statusControl.locator(".select-trigger").isVisible(), true);
+  await statusControl.locator(".select-trigger").click();
+  assert.equal(await statusControl.locator(".select-listbox").isVisible(), true);
+  assert.equal(
+    await statusControl.locator(".select-listbox").evaluate(
+      (element) => getComputedStyle(element).backgroundColor,
+    ),
+    "rgb(16, 28, 46)",
+  );
+  await statusControl.getByRole("option", { name: "Failed", exact: true }).click();
+  assert.equal(await page.locator("#statusFilter").inputValue(), "failed");
   await page.locator("#testRows tr").click();
 
   assert.equal(await page.locator(".artifact").count(), 9);
