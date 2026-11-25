@@ -1,3 +1,4 @@
+import type { DashboardSettings } from "../../dashboard-template";
 export type PlaywrightReporterOptions = {
     reportsRoot: string;
     stagingDirectory: string;
@@ -5,4 +6,5 @@ export type PlaywrightReporterOptions = {
     timezone: string;
     environment: string;
     baseURL: string;
+    dashboard?: DashboardSettings;
 };

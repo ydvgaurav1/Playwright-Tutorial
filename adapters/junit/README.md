@@ -6,7 +6,7 @@ does not run a test framework.
 
 ## Usage
 
-After installing `universal-qa-reporter` from the public `reporter-dist` branch:
+After installing `universal-qa-reporter` from the public npm registry:
 
 ```bash
 # One file
@@ -24,6 +24,9 @@ npx universal-qa-report results/ \
 # Help
 npx universal-qa-report --help
 ```
+
+Repository contributors can run the same CLI through
+`npm run report:junit -- <arguments>` from the repository root.
 
 Output uses the same run-folder shape as the Playwright adapter:
 
@@ -115,9 +118,11 @@ The same dashboard template is used with JUnit labels:
 - runtime row: **Runtime**
 - no Playwright report or Trace Viewer links
 
-Browser, project, and retry fields are shown as `Not captured` or `0` because
-JUnit XML does not define them. The browser filter is hidden when no browser
-data exists, and empty runs render explicit empty states.
+Browser and project fields are shown as `Not captured` because JUnit XML does
+not define them. The canonical schema's required retry counters remain zero,
+but retry frequency and retry-duration overhead are shown as **Unavailable**
+because JUnit supplies no reliable retry telemetry. The browser filter is
+hidden when no browser data exists, and empty runs render explicit empty states.
 
 ## Limitations
 
@@ -152,6 +157,12 @@ attachment content.
 
 ## Tests
 
-Adapter tests and fixtures are maintained on the repository's source branches,
-not in this installable distribution branch. Consumers do not need the source
-tests or build tooling to use the converter.
+```bash
+npm run test:junit
+```
+
+Fixtures cover Pytest, Maven Surefire, REST Assured/TestNG-style XML, nested
+suites, missing metadata, empty runs, malformed XML, entity/CDATA handling,
+oversized input, manifest matching, path traversal, absolute paths, and symlink
+escapes. Tests use temporary report roots and never modify `reports/` or
+`reports/latest`.

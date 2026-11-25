@@ -16,6 +16,7 @@ export type JunitGenerateOptions = {
     /** Extra metadata recorded in extensions.junit. */
     metadata?: Record<string, string>;
     latestTitle?: string;
+    dashboard?: DashboardSettings;
 };
 export type JunitGenerateResult = {
     runId: string;

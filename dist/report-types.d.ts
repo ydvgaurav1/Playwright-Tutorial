@@ -1,4 +1,5 @@
 export type DashboardStatus = "passed" | "failed" | "skipped" | "flaky";
+export type HistoricalObservationStatus = DashboardStatus | "timedOut" | "interrupted" | "unknown";
 export type CapturedError = {
     message: string;
     stack?: string;
@@ -101,6 +102,27 @@ export type SpecRecord = SpecIdentity & {
     module: string;
     summary: SummaryRecord;
 };
+export type ComparisonTestSnapshot = {
+    id: string;
+    title: string;
+    file: string;
+    suites: string[];
+    module?: string;
+    status: DashboardStatus;
+    /** Exact canonical final status when richer than the legacy dashboard status. */
+    observationStatus?: HistoricalObservationStatus;
+    project: string;
+    browser: string;
+    repeatEachIndex: number;
+    /** Omitted when the source did not report a usable test duration. */
+    durationMs?: number;
+    /** Omitted when the source did not report retry telemetry. */
+    retriesConfigured?: number;
+    /** Omitted when the source did not report retry telemetry. */
+    retryAttempts?: number;
+    /** Present only when the source declares reliable attempt-level timing. */
+    attemptDurationsMs?: number[];
+};
 export type HistoryRecord = {
     runId: string;
     startTime: string;
@@ -112,6 +134,10 @@ export type HistoryRecord = {
     summary: SummaryRecord;
     failedTestIds: string[];
     dashboardPath: string;
+    /** Determined by the Node report writer; static browser code never probes disk. */
+    dashboardAvailable: boolean;
+    /** Compact deterministic input for static run-to-run comparison. */
+    tests?: ComparisonTestSnapshot[];
 };
 export type ReportDocument = {
     schemaVersion: 2;

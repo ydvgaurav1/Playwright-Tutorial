@@ -16,6 +16,29 @@ tutorial source, tests, build scripts, or generated reports.
 - Playwright projects: `@playwright/test >=1.64.0`
 - JUnit projects: a framework-generated JUnit XML file; Playwright is not needed
 
+## What's in 0.1.2
+
+- Evidence-first dashboard layout with resettable test filters, failed-test
+  highlights, and a dedicated run picker.
+- Run-to-run execution comparison for newly failed, fixed, newly flaky, and
+  retry-behavior changes.
+- Historical flaky-test intelligence that separates intermittent final outcomes
+  from retry dependence and persistent failure.
+- Test performance intelligence with median baselines, configurable absolute
+  and relative thresholds, slow-test and bottleneck views, and explicit
+  retry-duration reporting.
+- Canonical schema `1.0.0` is unchanged; schema-v1 and schema-v2 `results.json`
+  history remain readable.
+
+## Historical intelligence
+
+Completed dashboards embed compact test snapshots, so comparison, flaky, and
+performance views work from static files without a database or network service.
+Historical identity is environment + stable test ID + project + browser + repeat
+index. Missing telemetry is shown as **Unavailable**, never as zero. JUnit
+provides test-level duration but no reliable retry-duration telemetry; summed
+test and suite durations are workload measures, not wall-clock pipeline time.
+
 ## Install from GitHub
 
 ```bash
@@ -188,10 +211,11 @@ npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#reporter-dist
 
 ## Distribution scope
 
-This branch is not published to npm. The source package candidate remains on
-the `release/universal-qa-reporter-npm-v0.1.2` branch, and the private GitHub
-Packages release `@ydvgaurav1/universal-qa-reporter@0.1.1` remains separate and
-unchanged.
+This branch is not published to npm or GitHub Packages. It is the compiled
+distribution of the reviewed `0.1.2` source release
+(`281f076200173ebe35b4fdbc52ce44f6584d8234`) on `main`. The repository is
+public, so installation uses the GitHub HTTPS shorthand above and requires no
+registry authentication.
 
 ## License
 

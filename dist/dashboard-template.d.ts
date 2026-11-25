@@ -1,4 +1,6 @@
 import type { DashboardDocument } from "./report-types";
+import { type FlakyIntelligenceOptions } from "./universal/core/flaky-intelligence";
+import { type TestPerformanceOptions } from "./universal/core/performance-intelligence";
 /**
  * Optional presentation settings. Every default preserves the original
  * Playwright dashboard so existing reports and tests keep their behavior.
@@ -19,5 +21,7 @@ export type DashboardSettings = {
     timestampsLabel?: string;
     runtimeLabel?: string;
     variantColumnLabel?: string;
+    flakyIntelligence?: Partial<FlakyIntelligenceOptions>;
+    performanceIntelligence?: Partial<TestPerformanceOptions>;
 };
 export declare function createDashboard(report: DashboardDocument, settings?: DashboardSettings): string;

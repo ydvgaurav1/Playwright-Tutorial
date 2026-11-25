@@ -66,7 +66,7 @@ async function generateJunitReport(options) {
         reportsRoot: options.reportsRoot,
         timezone,
         latestTitle: options.latestTitle ?? "Latest JUnit report",
-        dashboard: exports.JUNIT_DASHBOARD_SETTINGS,
+        dashboard: { ...exports.JUNIT_DASHBOARD_SETTINGS, ...options.dashboard },
     });
     const startedAt = new Date(conversion.document.run.startedAt);
     const reserved = await writer.reserveRunDirectory(Number.isFinite(startedAt.getTime()) ? startedAt : new Date());

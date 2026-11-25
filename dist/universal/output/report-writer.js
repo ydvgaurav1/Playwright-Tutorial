@@ -11,6 +11,7 @@ const validate_1 = require("../schema/validate");
 const evidence_1 = require("./evidence");
 const files_1 = require("./files");
 const legacy_projection_1 = require("./legacy-projection");
+const execution_comparison_1 = require("../core/execution-comparison");
 /**
  * Writes the durable shape shared by every adapter: a reserved run folder,
  * canonical run.json, schema-v2 results.json, the existing dashboard, history,
@@ -55,7 +56,7 @@ class UniversalReportWriter {
     async writeRun(runDirectory, document, overrides = {}) {
         const report = await (0, evidence_1.prepareEvidenceForDashboard)((0, legacy_projection_1.toLegacyReport)(document), runDirectory);
         const history = await this.loadHistory(report.run.id);
-        history.push(toHistoryRecord(report));
+        history.push(toHistoryRecord(report, document.tests, document.capabilities.retries, document.capabilities.timings));
         history.sort((left, right) => left.startTime.localeCompare(right.startTime));
         await (0, files_1.writeFileAtomic)(node_path_1.default.join(runDirectory, "run.json"), (0, validate_1.stringifyRunDocument)(document));
         const dashboard = { ...report, history };
@@ -83,6 +84,19 @@ class UniversalReportWriter {
             try {
                 const content = await node_fs_1.promises.readFile(node_path_1.default.join(this.options.reportsRoot, entry.name, "results.json"), "utf8");
                 const previous = JSON.parse(content);
+                let previousTests = Array.isArray(previous.tests)
+                    ? (0, execution_comparison_1.toComparisonSnapshots)(previous.tests)
+                    : undefined;
+                try {
+                    const canonical = (0, validate_1.parseRunDocument)(await node_fs_1.promises.readFile(node_path_1.default.join(this.options.reportsRoot, entry.name, "run.json"), "utf8"));
+                    previousTests = (0, execution_comparison_1.toComparisonSnapshots)(canonical.tests, {
+                        retryTelemetryAvailable: canonical.capabilities.retries,
+                        timingGranularity: canonical.capabilities.timings,
+                    });
+                }
+                catch {
+                    // Older completed runs may only have results.json.
+                }
                 history.push({
                     runId: previous.run.id,
                     startTime: previous.run.startTime,
@@ -96,6 +110,8 @@ class UniversalReportWriter {
                         .filter(({ status }) => status === "failed")
                         .map(({ id }) => id),
                     dashboardPath: `../../${previous.run.id}/dashboard/index.html`,
+                    dashboardAvailable: await fileExists(node_path_1.default.join(this.options.reportsRoot, entry.name, "dashboard", "index.html")),
+                    tests: previousTests,
                 });
             }
             catch {
@@ -139,7 +155,7 @@ class UniversalReportWriter {
     }
 }
 exports.UniversalReportWriter = UniversalReportWriter;
-function toHistoryRecord(report) {
+function toHistoryRecord(report, sourceTests = report.tests, retryTelemetryAvailable, timingGranularity) {
     return {
         runId: report.run.id,
         startTime: report.run.startTime,
@@ -153,7 +169,21 @@ function toHistoryRecord(report) {
             .filter(({ status }) => status === "failed")
             .map(({ id }) => id),
         dashboardPath: `../../${report.run.id}/dashboard/index.html`,
+        dashboardAvailable: true,
+        tests: (0, execution_comparison_1.toComparisonSnapshots)(sourceTests, {
+            retryTelemetryAvailable,
+            timingGranularity,
+        }),
     };
+}
+async function fileExists(filePath) {
+    try {
+        await node_fs_1.promises.access(filePath);
+        return true;
+    }
+    catch {
+        return false;
+    }
 }
 function escapeHtml(value) {
     return value
