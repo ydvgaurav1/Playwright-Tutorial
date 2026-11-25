@@ -293,6 +293,37 @@ test("writes canonical run.json, compatible results.json, dashboard, history, an
   assert.match(latest, new RegExp(path.basename(runDirectory)));
 });
 
+test("uses a non-empty fallback when Playwright has no named project", async (t) => {
+  const workspace = createWorkspace();
+  t.after(() => fs.rmSync(workspace.root, { recursive: true, force: true }));
+
+  const defaultProjectTest = createTestCase({
+    id: "test-default-project",
+    title: "runs without an explicit project",
+    results: [createTestResult({ status: "passed", duration: 50 })],
+  });
+  defaultProjectTest.parent = {
+    project: () => ({ name: "", use: {} }),
+  };
+
+  const adapter = new PlaywrightReportingAdapter(optionsFor(workspace));
+  adapter.onBegin(createConfig(), createSuite([defaultProjectTest]));
+  await adapter.onEnd(
+    createFullResult({ status: "passed", duration: 50 }),
+  );
+
+  const runDirectory = findRunDirectory(workspace.reportsRoot);
+  const canonical = core.parseRunDocument(
+    fs.readFileSync(path.join(runDirectory, "run.json"), "utf8"),
+  );
+
+  assert.equal(canonical.tests[0].variant.name, "chromium");
+  assert.equal(canonical.tests[0].variant.browser, "chromium");
+  assert.equal(canonical.tests[0].spec.key, "tests/login.spec.ts::chromium");
+  assert.deepEqual(canonical.environment.projects, ["chromium"]);
+  assert.deepEqual(canonical.environment.browsers, ["chromium"]);
+});
+
 test("preserves flaky retry semantics and schema-valid synthetic attempts", async (t) => {
   const workspace = createWorkspace();
   t.after(() => fs.rmSync(workspace.root, { recursive: true, force: true }));

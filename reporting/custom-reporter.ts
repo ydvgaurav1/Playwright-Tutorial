@@ -144,8 +144,10 @@ class CustomDashboardReporter implements Reporter {
 
   private async serializeTest(test: TestCase): Promise<TestRecord> {
     const project = test.parent.project();
-    const projectName = String(project?.name ?? "unknown");
-    const browser = String(project?.use.browserName ?? projectName);
+    const browserName = String(project?.use?.browserName ?? "").trim();
+    const projectName =
+      String(project?.name ?? "").trim() || browserName || "chromium";
+    const browser = browserName || projectName;
     const file = path.relative(process.cwd(), test.location.file).replaceAll("\\", "/");
     const titlePath = test
       .titlePath()
