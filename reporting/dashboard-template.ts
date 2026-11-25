@@ -1286,6 +1286,10 @@ ${actionLinks}
       return Boolean(run.current || run.runId === report.run.id || run.dashboardAvailable === true);
     }
 
+    function isExecutionDeleted(run) {
+      return Boolean(run.deleted === true);
+    }
+
     function runsForDay(key) {
       return pickerRuns.filter((run) => runDateKey(run.startTime) === key);
     }
@@ -1293,7 +1297,7 @@ ${actionLinks}
     function initializeRunPicker() {
       const seen = new Set();
       pickerRuns = [];
-      [currentRunRecord(), ...report.history].forEach((run) => {
+      [currentRunRecord(), ...report.history.filter((run) => !isExecutionDeleted(run))].forEach((run) => {
         if (seen.has(run.runId)) return;
         seen.add(run.runId); pickerRuns.push(run);
       });
@@ -1393,7 +1397,7 @@ ${actionLinks}
 
     function renderRunDayRuns() {
       const list = byId('runDayRuns'); list.replaceChildren();
-      const runs = runsForDay(pickerSelectedKey);
+      const runs = runsForDay(pickerSelectedKey).filter((run) => !isExecutionDeleted(run));
       if (!runs.length) return;
       if (runs.length === 1) {
         list.append(textElement('p', runs[0].current
@@ -1571,7 +1575,9 @@ ${actionLinks}
     }
 
     function priorRuns() {
-      return report.history.filter((run) => run.runId !== report.run.id && run.startTime < report.run.startTime);
+      return report.history
+        .filter((run) => run.runId !== report.run.id && run.startTime < report.run.startTime)
+        .filter((run) => !isExecutionDeleted(run));
     }
 
     function failureInsight(test) {
@@ -1625,7 +1631,7 @@ ${actionLinks}
     }
 
     function comparisonRuns() {
-      const runs = [...report.history];
+      const runs = [...report.history].filter((run) => !isExecutionDeleted(run));
       if (!runs.some((run) => run.runId === report.run.id)) {
         runs.push({
           runId: report.run.id, startTime: report.run.startTime, endTime: report.run.endTime,
@@ -2174,8 +2180,8 @@ ${actionLinks}
 
     function renderHistory() {
       const body = byId('historyRows'); body.replaceChildren();
-      const records = scopedHistory().sort((left, right) => right.run.startTime.localeCompare(left.run.startTime));
-      const visibleRecords = historyExpanded ? records : records.slice(0, initialHistoryRows);
+      const activeRecords = scopedHistory().filter((run) => !isExecutionDeleted(run)).sort((left, right) => right.run.startTime.localeCompare(left.run.startTime));
+      const visibleRecords = historyExpanded ? activeRecords : activeRecords.slice(0, initialHistoryRows);
       visibleRecords.forEach(({ run, summary }) => {
         const linkCell = document.createElement('td');
         if (isDashboardAvailable(run)) {
@@ -2193,16 +2199,16 @@ ${actionLinks}
           textElement('td', formatDuration(summary.durationMs), 'num'), linkCell); body.append(row);
       });
       byId('noHistory').textContent = 'No completed historical records are available for this scope.';
-      byId('noHistory').hidden = records.length !== 0;
+      byId('noHistory').hidden = activeRecords.length !== 0;
       const footer = byId('historyFooter');
       const toggle = byId('historyToggle');
-      footer.hidden = records.length <= initialHistoryRows;
-      byId('historyCount').textContent = records.length
-        ? 'Showing ' + visibleRecords.length + ' of ' + records.length + ' executions'
+      footer.hidden = activeRecords.length <= initialHistoryRows;
+      byId('historyCount').textContent = activeRecords.length
+        ? 'Showing ' + visibleRecords.length + ' of ' + activeRecords.length + ' executions'
         : '';
-      toggle.textContent = historyExpanded ? 'Show latest ' + initialHistoryRows : 'View all ' + records.length;
-      toggle.setAttribute('aria-label', historyExpanded ? 'Show latest ' + initialHistoryRows + ' executions' : 'View all ' + records.length + ' executions');
-      renderTrend(records);
+      toggle.textContent = historyExpanded ? 'Show latest ' + initialHistoryRows : 'View all ' + activeRecords.length;
+      toggle.setAttribute('aria-label', historyExpanded ? 'Show latest ' + initialHistoryRows + ' executions' : 'View all ' + activeRecords.length + ' executions');
+      renderTrend(activeRecords);
     }
 
     function renderTrend(records) {

@@ -180,6 +180,9 @@ export class UniversalReportWriter {
             .filter(({ status }) => status === "failed")
             .map(({ id }) => id),
           dashboardPath: `../../${previous.run.id}/dashboard/index.html`,
+          /** Dashboard availability is determined by presence of the dashboard file on disk.
+           * This is NOT the same as intentional deletion — a missing dashboard file
+           * does not imply the execution was deliberately removed. */
           dashboardAvailable: await fileExists(
             path.join(
               this.options.reportsRoot,
@@ -188,10 +191,12 @@ export class UniversalReportWriter {
               "index.html",
             ),
           ),
+          deleted: false,
           tests: previousTests,
         });
       } catch {
         // Incomplete runs have no valid results.json and are intentionally omitted.
+        // They are silently dropped so they do not appear in active history.
       }
     }
 

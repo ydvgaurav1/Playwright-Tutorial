@@ -159,6 +159,11 @@ export type HistoryRecord = {
   dashboardPath: string;
   /** Determined by the Node report writer; static browser code never probes disk. */
   dashboardAvailable: boolean;
+  /** Set to true when the run directory has been intentionally removed from reportsRoot.
+   * This is NOT inferred from a missing dashboard file alone — it requires
+   * explicit tracking of the directory's prior presence versus its current absence.
+   */
+  deleted?: boolean;
   /** Compact deterministic input for static run-to-run comparison. */
   tests?: ComparisonTestSnapshot[];
 };
