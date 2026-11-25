@@ -137,8 +137,9 @@ class PlaywrightReportingAdapter {
     }
     async serializeTest(test, runStartedAt) {
         const project = test.parent.project();
-        const projectName = String(project?.name ?? "unknown");
-        const browser = String(project?.use.browserName ?? projectName);
+        const browserName = String(project?.use?.browserName ?? "").trim();
+        const projectName = String(project?.name ?? "").trim() || browserName || "chromium";
+        const browser = browserName || projectName;
         const file = node_path_1.default
             .relative(process.cwd(), test.location.file)
             .replaceAll("\\", "/");

@@ -212,10 +212,9 @@ npm install --save-dev github:ydvgaurav1/Playwright-Tutorial#reporter-dist
 ## Distribution scope
 
 This branch is not published to npm or GitHub Packages. It is the compiled
-distribution of the reviewed `0.1.2` source release
-(`281f076200173ebe35b4fdbc52ce44f6584d8234`) on `main`. The repository is
-public, so installation uses the GitHub HTTPS shorthand above and requires no
-registry authentication.
+distribution of the reviewed `0.1.2` source release on `main`. The repository
+is public, so installation uses the GitHub HTTPS shorthand above and requires
+no registry authentication.
 
 ## License
 
