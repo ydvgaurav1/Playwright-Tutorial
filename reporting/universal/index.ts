@@ -5,6 +5,9 @@ export * from "./schema/paths";
 export * from "./core/classify";
 export * from "./core/metrics";
 export * from "./core/normalize";
+export * from "./core/execution-comparison";
+export * from "./core/flaky-intelligence";
+export * from "./core/performance-intelligence";
 
 export * from "./compat/legacy-playwright";
 export * from "./compat/compare";

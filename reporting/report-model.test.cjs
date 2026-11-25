@@ -234,6 +234,35 @@ test("renders a result-independent dashboard title and the complete filter set",
   ]) {
     assert.match(html, new RegExp(`id="${filterId}"`));
   }
+  for (const comparisonId of [
+    "comparisonSection",
+    "comparisonBaseline",
+    "comparisonCurrent",
+    "comparisonState",
+    "comparisonMetrics",
+    "comparisonFilters",
+    "comparisonRows",
+  ]) {
+    assert.match(html, new RegExp(`id="${comparisonId}"`));
+  }
+  for (const intelligenceId of [
+    "flakyIntelligenceSection",
+    "flakyIntelligenceState",
+    "flakyIntelligenceFilters",
+    "flakyIntelligenceRows",
+  ]) {
+    assert.match(html, new RegExp(`id="${intelligenceId}"`));
+  }
+  for (const performanceId of [
+    "performanceIntelligenceSection",
+    "performanceIntelligenceState",
+    "performanceIntelligenceFilters",
+    "performanceIntelligenceSort",
+    "performanceIntelligenceRows",
+    "performanceBottlenecks",
+  ]) {
+    assert.match(html, new RegExp(`id="${performanceId}"`));
+  }
 
   const embeddedScript = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
   assert.ok(embeddedScript, "dashboard must include its client script");
@@ -295,11 +324,30 @@ test("separates run navigation from resettable test filters", () => {
   const filtersIndex = html.indexOf('class="filters"');
   const runPickerIndex = html.indexOf('class="run-picker"');
   const testsIndex = html.indexOf('aria-labelledby="testsTitle"');
+  const failureHighlightsIndex = html.indexOf('id="failureHighlights"');
+  const specsIndex = html.indexOf('aria-labelledby="specsTitle"');
+  const historyIndex = html.indexOf('aria-labelledby="historyTitle"');
   const metadataIndex = html.indexOf('class="environment-details"');
   assert.ok(runContextIndex < filtersIndex);
   assert.ok(runPickerIndex > runContextIndex && runPickerIndex < filtersIndex);
   assert.ok(
+    failureHighlightsIndex > runContextIndex &&
+      failureHighlightsIndex < filtersIndex,
+    "failed-test highlights should appear before test filters",
+  );
+  assert.ok(
     testsIndex < metadataIndex,
     "the actionable execution table should appear before secondary metadata",
+  );
+  assert.ok(
+    testsIndex < specsIndex &&
+      specsIndex < historyIndex &&
+      historyIndex < metadataIndex,
+    "breakdowns and history should appear before technical metadata",
+  );
+  assert.doesNotMatch(
+    html,
+    /id="distributionChart"/,
+    "result distribution should not be repeated in a second chart",
   );
 });

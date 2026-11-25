@@ -30,6 +30,7 @@ export type JunitGenerateOptions = {
   /** Extra metadata recorded in extensions.junit. */
   metadata?: Record<string, string>;
   latestTitle?: string;
+  dashboard?: DashboardSettings;
 };
 
 export type JunitGenerateResult = {
@@ -109,7 +110,7 @@ export async function generateJunitReport(
     reportsRoot: options.reportsRoot,
     timezone,
     latestTitle: options.latestTitle ?? "Latest JUnit report",
-    dashboard: JUNIT_DASHBOARD_SETTINGS,
+    dashboard: { ...JUNIT_DASHBOARD_SETTINGS, ...options.dashboard },
   });
 
   const startedAt = new Date(conversion.document.run.startedAt);

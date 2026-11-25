@@ -80,6 +80,9 @@ jobs:
       - name: Validate types and reporting behavior
         run: |
           npm run typecheck
+          npm run test:comparison
+          npm run test:flaky-intelligence
+          npm run test:performance-intelligence
           npm run test:reporting
           npm run test:universal
           npm run test:adapter

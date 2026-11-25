@@ -6,6 +6,16 @@ const { load, repoRoot } = require("./load-ts.cjs");
 
 const core = load("index.ts");
 const reportsRoot = path.join(repoRoot, "reports");
+const syntheticSchemaV1Fixture = path.join(
+  __dirname,
+  "fixtures",
+  "synthetic-schema-v1-results.json",
+);
+const syntheticSchemaV2Fixture = path.join(
+  __dirname,
+  "fixtures",
+  "synthetic-schema-v2-results.json",
+);
 
 function completedRuns() {
   if (!fs.existsSync(reportsRoot)) return [];
@@ -34,12 +44,23 @@ function completedRuns() {
     );
 }
 
-test("historical results.json files compare cleanly with the universal model", async (t) => {
-  const runs = completedRuns();
-  if (runs.length === 0) {
-    t.skip("No completed reports are available in this workspace.");
-    return;
-  }
+test("historical and synthetic results.json files compare cleanly with the universal model", async (t) => {
+  const historicalRuns = completedRuns();
+  const runs = [
+    {
+      id: "synthetic-schema-v1-fixture",
+      file: syntheticSchemaV1Fixture,
+      document: JSON.parse(fs.readFileSync(syntheticSchemaV1Fixture, "utf8")),
+      syntheticFixture: true,
+    },
+    {
+      id: "synthetic-schema-v2-fixture",
+      file: syntheticSchemaV2Fixture,
+      document: JSON.parse(fs.readFileSync(syntheticSchemaV2Fixture, "utf8")),
+      syntheticFixture: true,
+    },
+    ...historicalRuns,
+  ];
 
   const schemaVersions = new Set();
   for (const run of runs) {
@@ -70,7 +91,7 @@ test("historical results.json files compare cleanly with the universal model", a
       }
 
       console.log(
-        `${run.id}: schema=${comparison.schemaVersion} checks=${comparison.checked.join(",")} differences=0`,
+        `${run.id}${run.syntheticFixture ? " [synthetic fixture]" : ""}: schema=${comparison.schemaVersion} checks=${comparison.checked.join(",")} differences=0`,
       );
     });
   }

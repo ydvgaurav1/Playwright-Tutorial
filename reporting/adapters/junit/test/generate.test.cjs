@@ -143,6 +143,23 @@ test("generates a JUnit-only run folder, dashboard, history, and evidence", asyn
   assert.doesNotMatch(html, /trace\.playwright\.dev/);
   assert.match(html, /"runId":"prior-run"/);
   assert.match(html, new RegExp(`"runId":"${result.runId}"`));
+  const embeddedReport = JSON.parse(
+    html.match(/const report = ([\s\S]*?);\n\s*const compareExecutions =/)[1],
+  );
+  const currentHistory = embeddedReport.history.find(
+    ({ runId }) => runId === result.runId,
+  );
+  assert.equal(currentHistory.tests.length, 3);
+  const firstSnapshot = currentHistory.tests[0];
+  const firstLegacyTest = legacy.tests.find(({ id }) => id === firstSnapshot.id);
+  assert.equal(firstSnapshot.project, firstLegacyTest.project);
+  assert.equal(firstSnapshot.browser, "");
+  assert.equal(firstSnapshot.module, firstLegacyTest.module);
+  assert.equal(firstSnapshot.durationMs, firstLegacyTest.durationMs);
+  assert.equal("attempts" in firstSnapshot, false);
+  assert.equal("attemptDurationsMs" in firstSnapshot, false);
+  assert.equal("retryAttempts" in firstSnapshot, false);
+  assert.equal("retriesConfigured" in firstSnapshot, false);
 
   const latest = read(
     path.join(workspace.reportsRoot, "latest", "index.html"),

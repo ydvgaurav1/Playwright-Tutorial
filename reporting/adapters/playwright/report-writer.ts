@@ -21,6 +21,7 @@ export class PlaywrightReportWriter {
       reportsRoot: options.reportsRoot,
       timezone: options.timezone,
       latestTitle: "Latest Playwright report",
+      dashboard: options.dashboard,
     });
   }
 

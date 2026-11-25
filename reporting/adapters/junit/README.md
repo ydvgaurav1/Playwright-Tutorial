@@ -118,9 +118,11 @@ The same dashboard template is used with JUnit labels:
 - runtime row: **Runtime**
 - no Playwright report or Trace Viewer links
 
-Browser, project, and retry fields are shown as `Not captured` or `0` because
-JUnit XML does not define them. The browser filter is hidden when no browser
-data exists, and empty runs render explicit empty states.
+Browser and project fields are shown as `Not captured` because JUnit XML does
+not define them. The canonical schema's required retry counters remain zero,
+but retry frequency and retry-duration overhead are shown as **Unavailable**
+because JUnit supplies no reliable retry telemetry. The browser filter is
+hidden when no browser data exists, and empty runs render explicit empty states.
 
 ## Limitations
 

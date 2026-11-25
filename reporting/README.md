@@ -151,6 +151,24 @@ directory:
 Evidence paths are run-relative, so reports work from local disk and static HTTP
 hosting. Attachment content is rendered through `textContent` and never executed.
 
+## Historical intelligence
+
+Completed dashboards embed compact test snapshots for deterministic local
+analysis without a database or service:
+
+- execution comparison matches environment, stable test ID, project, browser,
+  and repeat index;
+- flaky-test intelligence keeps final-outcome intermittency separate from retry
+  dependence and persistent failure;
+- performance intelligence uses median historical durations, requires both
+  absolute and relative change thresholds, and reports retry overhead only when
+  the source declares attempt-level timing.
+
+Missing telemetry remains unavailable rather than becoming zero. JUnit provides
+test-level duration but no standard retry-duration telemetry. Summed test and
+suite durations are workload measures and are not presented as wall-clock
+pipeline time when tests execute in parallel.
+
 ## Report locations
 
 For `--reports-root reports`, each completed run has this shape:

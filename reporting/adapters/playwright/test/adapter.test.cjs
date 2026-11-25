@@ -29,6 +29,11 @@ test("writes canonical run.json, compatible results.json, dashboard, history, an
   const workspace = createWorkspace();
   t.after(() => fs.rmSync(workspace.root, { recursive: true, force: true }));
   createPriorReport(workspace.reportsRoot, "prior-run");
+  const unavailableRun = createPriorReport(
+    workspace.reportsRoot,
+    "missing-dashboard-run",
+  );
+  fs.rmSync(path.join(unavailableRun, "dashboard", "index.html"));
 
   const artifacts = createArtifactFiles(workspace);
   const assertionError = {
@@ -121,7 +126,10 @@ test("writes canonical run.json, compatible results.json, dashboard, history, an
     createFullResult({ status: "failed", duration: 1000 }),
   );
 
-  const runDirectory = findRunDirectory(workspace.reportsRoot, ["prior-run"]);
+  const runDirectory = findRunDirectory(workspace.reportsRoot, [
+    "prior-run",
+    "missing-dashboard-run",
+  ]);
   const canonical = core.parseRunDocument(
     fs.readFileSync(path.join(runDirectory, "run.json"), "utf8"),
   );
@@ -238,6 +246,45 @@ test("writes canonical run.json, compatible results.json, dashboard, history, an
   );
   assert.match(dashboard, /<h1>Automation Dashboard<\/h1>/);
   assert.match(dashboard, /prior-run/);
+  assert.match(
+    dashboard,
+    /"runId":"prior-run"[\s\S]*?"dashboardAvailable":true/,
+  );
+  assert.match(
+    dashboard,
+    /"runId":"missing-dashboard-run"[\s\S]*?"dashboardAvailable":false/,
+  );
+  const embeddedReport = JSON.parse(
+    dashboard.match(/const report = ([\s\S]*?);\n\s*const compareExecutions =/)[1],
+  );
+  const currentHistory = embeddedReport.history.find(
+    ({ runId }) => runId === legacy.run.id,
+  );
+  const unavailableHistory = embeddedReport.history.find(
+    ({ runId }) => runId === "missing-dashboard-run",
+  );
+  assert.equal(currentHistory.tests.length, legacy.tests.length);
+  const passedSnapshot = currentHistory.tests.find(
+    ({ id }) => id === legacyPassed.id,
+  );
+  assert.deepEqual(passedSnapshot, {
+    id: legacyPassed.id,
+    title: legacyPassed.title,
+    file: legacyPassed.file,
+    suites: legacyPassed.suites,
+    module: legacyPassed.module,
+    status: legacyPassed.status,
+    project: legacyPassed.project,
+    browser: legacyPassed.browser,
+    repeatEachIndex: legacyPassed.repeatEachIndex,
+    durationMs: legacyPassed.durationMs,
+    retriesConfigured: legacyPassed.retriesConfigured,
+    retryAttempts: legacyPassed.retryAttempts,
+    attemptDurationsMs: legacyPassed.attempts.map(
+      ({ durationMs }) => durationMs,
+    ),
+  });
+  assert.deepEqual(unavailableHistory.tests, []);
 
   const latest = fs.readFileSync(
     path.join(workspace.reportsRoot, "latest", "index.html"),

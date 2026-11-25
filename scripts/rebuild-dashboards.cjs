@@ -34,6 +34,28 @@ if (!fs.existsSync(templatePath)) {
 }
 
 const { createDashboard } = require(templatePath);
+const { toComparisonSnapshots } = require(
+  path.resolve(
+    __dirname,
+    "..",
+    "reporting",
+    "dist",
+    "universal",
+    "core",
+    "execution-comparison.js",
+  ),
+);
+const { parseRunDocument } = require(
+  path.resolve(
+    __dirname,
+    "..",
+    "reporting",
+    "dist",
+    "universal",
+    "schema",
+    "validate.js",
+  ),
+);
 const DASHBOARD_SETTINGS = {
   timezone: "Asia/Kolkata",
   timezoneLabel: "IST",
@@ -50,10 +72,33 @@ function readRuns() {
       const resultsPath = path.join(reportsRoot, name, "results.json");
       if (!fs.existsSync(resultsPath)) return undefined;
       try {
-        return normalizeReport(
+        const report = normalizeReport(
           JSON.parse(fs.readFileSync(resultsPath, "utf8")),
           name,
         );
+        const canonicalPath = path.join(reportsRoot, name, "run.json");
+        if (fs.existsSync(canonicalPath)) {
+          try {
+            const canonical = parseRunDocument(
+              fs.readFileSync(canonicalPath, "utf8"),
+            );
+            Object.defineProperty(report, "_comparisonTests", {
+              value: canonical.tests,
+              enumerable: false,
+            });
+            Object.defineProperty(report, "_retryTelemetryAvailable", {
+              value: canonical.capabilities.retries,
+              enumerable: false,
+            });
+            Object.defineProperty(report, "_timingGranularity", {
+              value: canonical.capabilities.timings,
+              enumerable: false,
+            });
+          } catch {
+            // Legacy runs may not contain a valid canonical document.
+          }
+        }
+        return report;
       } catch (error) {
         console.warn(`Skipping ${name}: ${error.message}`);
         return undefined;
@@ -311,6 +356,11 @@ function historyRecord(report) {
       .filter((test) => test.status === "failed")
       .map((test) => test.id),
     dashboardPath: `../../${report.run.id}/dashboard/index.html`,
+    dashboardAvailable: true,
+    tests: toComparisonSnapshots(report._comparisonTests ?? report.tests, {
+      retryTelemetryAvailable: report._retryTelemetryAvailable,
+      timingGranularity: report._timingGranularity,
+    }),
   };
 }
 

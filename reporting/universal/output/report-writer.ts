@@ -12,10 +12,11 @@ import type {
   TestRecord,
 } from "../../report-types";
 import type { RunDocument } from "../schema/types";
-import { stringifyRunDocument } from "../schema/validate";
+import { parseRunDocument, stringifyRunDocument } from "../schema/validate";
 import { prepareEvidenceForDashboard } from "./evidence";
 import { writeFileAtomic } from "./files";
 import { toLegacyReport } from "./legacy-projection";
+import { toComparisonSnapshots } from "../core/execution-comparison";
 
 export type UniversalReportWriterOptions = {
   reportsRoot: string;
@@ -81,7 +82,14 @@ export class UniversalReportWriter {
       runDirectory,
     );
     const history = await this.loadHistory(report.run.id);
-    history.push(toHistoryRecord(report));
+    history.push(
+      toHistoryRecord(
+        report,
+        document.tests,
+        document.capabilities.retries,
+        document.capabilities.timings,
+      ),
+    );
     history.sort((left, right) =>
       left.startTime.localeCompare(right.startTime),
     );
@@ -141,6 +149,23 @@ export class UniversalReportWriter {
           summary: SummaryRecord;
           tests?: Array<Partial<TestRecord> & { id: string; status: string }>;
         };
+        let previousTests = Array.isArray(previous.tests)
+          ? toComparisonSnapshots(previous.tests)
+          : undefined;
+        try {
+          const canonical = parseRunDocument(
+            await fs.readFile(
+              path.join(this.options.reportsRoot, entry.name, "run.json"),
+              "utf8",
+            ),
+          );
+          previousTests = toComparisonSnapshots(canonical.tests, {
+            retryTelemetryAvailable: canonical.capabilities.retries,
+            timingGranularity: canonical.capabilities.timings,
+          });
+        } catch {
+          // Older completed runs may only have results.json.
+        }
         history.push({
           runId: previous.run.id,
           startTime: previous.run.startTime,
@@ -155,6 +180,15 @@ export class UniversalReportWriter {
             .filter(({ status }) => status === "failed")
             .map(({ id }) => id),
           dashboardPath: `../../${previous.run.id}/dashboard/index.html`,
+          dashboardAvailable: await fileExists(
+            path.join(
+              this.options.reportsRoot,
+              entry.name,
+              "dashboard",
+              "index.html",
+            ),
+          ),
+          tests: previousTests,
         });
       } catch {
         // Incomplete runs have no valid results.json and are intentionally omitted.
@@ -211,7 +245,12 @@ export class UniversalReportWriter {
   }
 }
 
-function toHistoryRecord(report: ReportDocument): HistoryRecord {
+function toHistoryRecord(
+  report: ReportDocument,
+  sourceTests: readonly unknown[] = report.tests,
+  retryTelemetryAvailable?: boolean,
+  timingGranularity?: RunDocument["capabilities"]["timings"],
+): HistoryRecord {
   return {
     runId: report.run.id,
     startTime: report.run.startTime,
@@ -225,7 +264,21 @@ function toHistoryRecord(report: ReportDocument): HistoryRecord {
       .filter(({ status }) => status === "failed")
       .map(({ id }) => id),
     dashboardPath: `../../${report.run.id}/dashboard/index.html`,
+    dashboardAvailable: true,
+    tests: toComparisonSnapshots(sourceTests, {
+      retryTelemetryAvailable,
+      timingGranularity,
+    }),
   };
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function escapeHtml(value: string): string {

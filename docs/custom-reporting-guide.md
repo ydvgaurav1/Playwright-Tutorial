@@ -144,6 +144,82 @@ Report generation failures are caught in `onEnd` and logged. They do not rethrow
 
 Historical trends use only completed reports found under `reports/`. Legacy schema-v1 reports contribute overall history but have no suite snapshots, so they are omitted from suite-specific trends instead of being inferred. A current failure is marked previously observed only when its stable ID appears in an earlier stored failure list; otherwise the UI says either new in available history or no prior run data.
 
+### Historical flaky-test intelligence
+
+Historical intelligence matches only records with the same environment, stable test ID, project, browser, and repeat index. It keeps two measured signals separate:
+
+- **Failure frequency** is final failed or timed-out observations divided by executed observations. A failed attempt followed by a successful retry is not counted as a final failure.
+- **Retry frequency** is observations that used a retry divided by executed observations with known retry telemetry. Missing retry fields are excluded from this denominator rather than treated as zero.
+
+Skipped, interrupted, unknown, missing, and insufficient observations appear in the timeline but are excluded from both percentage denominators. Persistent failures are labeled separately from pass/fail intermittency, and one isolated failure or retry does not automatically make a test unstable.
+
+Default inference thresholds use the latest 12 compatible runs, require at least 3 executed observations, and require at least 2 instability events at a measured frequency of 25% or greater. These values affect inferred labels only; measured counts never change. Reporter integrations can override them through dashboard settings:
+
+```ts
+{
+  dashboard: {
+    flakyIntelligence: {
+      maxHistoryRuns: 12,
+      minComparableExecutions: 3,
+      minInstabilityEvents: 2,
+      instabilityRateThreshold: 25,
+    },
+  },
+}
+```
+
+When a valid canonical `run.json` is available, the dashboard preserves timed-out, interrupted, and unknown final statuses. Older `results.json`-only history retains its recorded legacy status and is not reinterpreted.
+
+### Historical test-performance intelligence
+
+Performance intelligence uses the same comparison identity as status and flaky intelligence: environment, stable test ID, project, browser, and repeat index must all match. Different execution variants are never combined.
+
+For each test in the selected execution:
+
+1. Take the latest 12 compatible prior executions.
+2. Keep only finite, non-negative durations from usable observations. Skipped, interrupted, unknown, missing, invalid, and absent test records remain visible in the timeline but do not enter the baseline.
+3. Require at least 3 valid prior samples.
+4. Sort those samples and calculate the median. For an even sample count, the median is the arithmetic mean of the two middle values.
+5. Calculate absolute change as `current - median`.
+6. Calculate relative change as `(current - median) / median × 100`, rounded to one decimal place.
+
+A regression requires both an absolute increase of at least 1,000 ms and a relative increase of at least 25%. An improvement requires equivalent decreases in both dimensions. Meeting only one threshold remains stable. A zero median cannot produce a relative percentage, so it is reported as insufficient rather than being divided by zero.
+
+The default slow-test threshold is 30,000 ms. “Slow” describes the selected duration only and is independent of regression classification; a consistently slow test can be stable.
+
+Retry overhead is available only when the source declares attempt-level timing and every projected attempt duration is usable:
+
+- Initial duration is the first attempt.
+- Subsequent durations are retained individually.
+- Retry overhead is the sum of attempts after the first.
+- Total test duration is the source-reported test duration.
+
+Playwright declares attempt-level timing. JUnit declares test-level timing and has no standard retry representation, so JUnit retry overhead is **Unavailable**, never zero. Legacy `results.json` fallback keeps usable test durations but does not infer attempt timing unless the known direct Playwright writer supplies that capability.
+
+The bottleneck summary deliberately distinguishes:
+
+- **Wall-clock run duration:** framework invocation duration.
+- **Summed measured test duration:** sum of usable selected-test durations.
+- **Suite/module workload:** sum of usable member-test durations.
+
+Parallel workers can make test or suite duration sums exceed wall-clock duration. These sums measure execution workload and are not pipeline-time estimates. A test belonging to multiple suites contributes to each suite's workload, just as it does in existing suite summaries.
+
+Reporter integrations can override presentation thresholds without changing stored reports:
+
+```ts
+{
+  dashboard: {
+    performanceIntelligence: {
+      maxHistoricalRuns: 12,
+      minHistoricalSamples: 3,
+      slowTestThresholdMs: 30_000,
+      absoluteChangeThresholdMs: 1_000,
+      relativeChangeThresholdPercent: 25,
+    },
+  },
+}
+```
+
 ## Commands
 
 ```bash
@@ -161,6 +237,12 @@ npm run test:reporting
 
 # Verify canonical schema, metrics, normalization, and historical equivalence.
 npm run test:universal
+
+# Verify deterministic historical flaky-test calculations and thresholds.
+npm run test:flaky-intelligence
+
+# Verify median duration baselines, regressions, retry overhead, and bottlenecks.
+npm run test:performance-intelligence
 
 # Verify the Playwright adapter, projection, retries, evidence, and failure isolation.
 npm run test:adapter

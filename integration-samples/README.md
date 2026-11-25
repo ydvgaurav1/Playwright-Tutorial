@@ -116,8 +116,8 @@ Maven Surefire toolchain from the file path.
 ### Minimum configuration for an external JUnit project
 
 1. Produce JUnit-compatible XML with the project's normal test runner.
-2. Install the private GitHub package and use `npx universal-qa-report`;
-   Playwright installation is not required.
+2. Install the approved `universal-qa-reporter` distribution and use
+   `npx universal-qa-report`; Playwright installation is not required.
 3. Pass the XML file or directory, a writable reports root, and an optional
    framework override.
 4. Add an attachment manifest when evidence must be copied. Manifest paths are

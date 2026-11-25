@@ -1,0 +1,146 @@
+{
+  "_fixture": "Synthetic schema-v2 compatibility fixture generated from a valid canonical schema 1.0.0 document. This is test data, not a historical execution.",
+  "schemaVersion": 2,
+  "run": {
+    "id": "synthetic-schema-v2",
+    "status": "passed",
+    "startTime": "2026-01-16T10:00:00.000Z",
+    "endTime": "2026-01-16T10:00:01.000Z",
+    "timezone": "Asia/Kolkata"
+  },
+  "metadata": {
+    "environment": "synthetic-compatibility-fixture",
+    "baseURL": "https://example.test",
+    "browsers": [
+      "chromium"
+    ],
+    "projects": [
+      "chromium"
+    ],
+    "operatingSystem": "fixture-os",
+    "nodeVersion": "v20.0.0",
+    "ci": true
+  },
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "passPercentage": 100,
+    "durationMs": 1000
+  },
+  "suites": [
+    {
+      "name": "regression",
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "passPercentage": 100,
+        "durationMs": 1000
+      }
+    }
+  ],
+  "modules": [
+    {
+      "name": "compatibility",
+      "specKeys": [
+        "tests/legacy-compatibility.spec.ts::chromium"
+      ],
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "passPercentage": 100,
+        "durationMs": 1000
+      }
+    }
+  ],
+  "specs": [
+    {
+      "key": "tests/legacy-compatibility.spec.ts::chromium",
+      "name": "legacy-compatibility.spec.ts",
+      "path": "tests/legacy-compatibility.spec.ts",
+      "project": "chromium",
+      "browser": "chromium",
+      "module": "compatibility",
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "passPercentage": 100,
+        "durationMs": 1000
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "synthetic-v2-test",
+      "title": "migrates a schema-v2 passing test",
+      "titlePath": [
+        "Legacy compatibility",
+        "migrates a schema-v2 passing test"
+      ],
+      "suites": [
+        "regression"
+      ],
+      "module": "compatibility",
+      "spec": {
+        "key": "tests/legacy-compatibility.spec.ts::chromium",
+        "name": "legacy-compatibility.spec.ts",
+        "path": "tests/legacy-compatibility.spec.ts"
+      },
+      "file": "tests/legacy-compatibility.spec.ts",
+      "line": 10,
+      "column": 3,
+      "status": "passed",
+      "project": "chromium",
+      "browser": "chromium",
+      "repeatEachIndex": 0,
+      "durationMs": 1000,
+      "retriesConfigured": 0,
+      "retryAttempts": 0,
+      "tags": [
+        "@regression",
+        "@module:compatibility"
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "retry": 0,
+          "status": "passed",
+          "durationMs": 1000,
+          "startTime": "2026-01-16T10:00:00.000Z",
+          "workerIndex": 0,
+          "errors": [],
+          "steps": [
+            {
+              "title": "Verify compatibility projection",
+              "category": "test.step",
+              "status": "passed",
+              "durationMs": 900,
+              "startTime": "2026-01-16T10:00:00.100Z",
+              "steps": []
+            }
+          ],
+          "artifacts": [],
+          "logs": [
+            {
+              "stream": "stdout",
+              "timestamp": "2026-01-16T10:00:00.200Z",
+              "text": "synthetic schema-v2 log"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalErrors": []
+}

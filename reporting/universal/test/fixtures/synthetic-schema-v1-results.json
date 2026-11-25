@@ -1,0 +1,68 @@
+{
+  "_fixture": "Synthetic schema-v1 compatibility fixture based on the documented legacy results.json shape. This is test data, not a historical execution.",
+  "schemaVersion": 1,
+  "run": {
+    "id": "synthetic-schema-v1",
+    "status": "passed",
+    "startTime": "2026-01-15T10:00:00.000Z",
+    "endTime": "2026-01-15T10:00:00.100Z",
+    "timezone": "Asia/Kolkata"
+  },
+  "metadata": {
+    "environment": "synthetic-compatibility-fixture",
+    "baseURL": "https://example.test",
+    "browsers": [
+      "chromium"
+    ],
+    "operatingSystem": "fixture-os",
+    "nodeVersion": "v20.0.0",
+    "ci": true
+  },
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "passPercentage": 100,
+    "durationMs": 100
+  },
+  "tests": [
+    {
+      "id": "synthetic-v1-test",
+      "title": "migrates a schema-v1 passing test",
+      "titlePath": [
+        "Legacy compatibility",
+        "migrates a schema-v1 passing test"
+      ],
+      "suite": "sanity",
+      "file": "tests/legacy-compatibility.spec.ts",
+      "line": 10,
+      "column": 3,
+      "status": "passed",
+      "browser": "chromium",
+      "durationMs": 100,
+      "retriesConfigured": 0,
+      "retryAttempts": 0,
+      "tags": [
+        "@sanity",
+        "@module:compatibility"
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "retry": 0,
+          "status": "passed",
+          "durationMs": 100,
+          "startTime": "2026-01-15T10:00:00.000Z",
+          "workerIndex": 0,
+          "errors": [],
+          "steps": [],
+          "artifacts": [],
+          "logs": []
+        }
+      ]
+    }
+  ],
+  "globalErrors": []
+}

@@ -12,6 +12,7 @@ import type {
   TestStep,
 } from "@playwright/test/reporter";
 import { createDashboard } from "./dashboard-template";
+import { toComparisonSnapshots } from "./universal/core/execution-comparison";
 import {
   classifyModule,
   classifySuites,
@@ -384,6 +385,12 @@ class CustomDashboardReporter implements Reporter {
           summary: ReportDocument["summary"];
           tests?: Array<Partial<TestRecord> & { id: string; status: DashboardStatus }>;
         };
+        const previousTests = Array.isArray(previous.tests)
+          ? toComparisonSnapshots(previous.tests, {
+              retryTelemetryAvailable: true,
+              timingGranularity: "attempt",
+            })
+          : undefined;
         history.push({
           runId: previous.run.id,
           startTime: previous.run.startTime,
@@ -397,6 +404,17 @@ class CustomDashboardReporter implements Reporter {
             .filter(({ status }) => status === "failed")
             .map(({ id }) => id),
           dashboardPath: `../../${previous.run.id}/dashboard/index.html`,
+          dashboardAvailable:
+            entry.name === this.getRunId() ||
+            (await this.fileExists(
+              path.join(
+                this.options.reportsRoot,
+                entry.name,
+                "dashboard",
+                "index.html",
+              ),
+            )),
+          tests: previousTests,
         });
       } catch {
         // Incomplete runs have no valid results.json and are intentionally omitted.
@@ -406,6 +424,15 @@ class CustomDashboardReporter implements Reporter {
     return history.sort((left, right) =>
       left.startTime.localeCompare(right.startTime),
     );
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private async updateLatestRedirect(): Promise<void> {
